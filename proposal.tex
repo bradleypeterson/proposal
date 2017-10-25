@@ -1,0 +1,129 @@
+\documentclass[12pt]{article}
+
+\usepackage{graphics}
+\usepackage{epsfig}
+\usepackage{times}
+\usepackage{amsmath}
+
+% <http://psl.cs.columbia.edu/phdczar/proposal.html>:
+%
+% The standard departmental thesis proposal format is the following:
+%        30 pages
+%        12 point type
+%        1 inch margins all around = 6.5   inch column
+%        (Total:  30 * 6.5   = 195 page-inches)
+%
+% For letter-size paper: 8.5 in x 11 in
+% Latex Origin is 1''/1'', so measurements are relative to this.
+
+\topmargin      0.0in
+\headheight     0.0in
+\headsep        0.0in
+\oddsidemargin  0.0in
+\evensidemargin 0.0in
+\textheight     9.0in
+\textwidth      6.5in
+
+\title{{\bf Portable and Performant GPU/Heterogeneous Asynchronous Many-Task Runtime System} \\
+\it Thesis proposal}
+\author{ {\bf Brad Peterson}  \\
+{\small bpeterson@sci.utah.edu}
+}
+\date{\today}
+
+\begin{document}
+\pagestyle{plain}
+\pagenumbering{roman}
+\maketitle
+
+\pagebreak
+\begin{abstract}
+
+Asynchronous many-task (AMT) frameworks are maturing as a model for computing simulations on a diverse range of architectures at large-scale.  The Uintah AMT framework is driven by a philosophy of maintaining an application layer distinct from the underlying runtime while operating on an adaptive mesh grid.  This model has enabled task developers to focus on writing task code while minimizing their interaction with MPI transfers, halo processing, data stores, concurrency of simulation variables, and proper ordering of task execution.   Uintah is also exploring portability through task code written using Kokkos constructs and a generalized Uintah API.  
+
+Nvidia GPUs introduce numerous challenges in maintaining this clear separation between the application and runtime layer.  Specifically, Nvidia GPUs require code adhere to a proprietary programming model, use separate high capacity memory, utilize asynchrony of data movement and execution, and partition execution units among many streaming multiprocessors.  Abstracting these GPU features into an application layer requires numerous novel solutions to both Uintah and Kokkos.  
+
+The focus of this research is largely split into two main parts, performance and portability.  Runtime performance comes from 1) preparing and executing a heterogeneous mixture of tasks to keep compute node processing units busy and 2) minimizing runtime overhead when preparing tasks for execution.  Uintah's target problems heavily rely on halo data dependencies, and so automated halo processing receives significant emphasis.  In addition, this work covers automated data movement of simulation variables between host and GPU memory as well as distributing tasks throughout a GPU for execution.   This work does not describe strategies for optimizing task code, as that is an application developer responsibility.  Rather, this work enables application developers to achieve good wall time performance with low runtime overhead.   
+
+Portability is becoming an productivity necessity for Uintah application developers as simulations can require a compute node process thousands of tasks with thousands of simulation variables and potentially hundreds of thousands of data dependencies across multiple adaptive mesh refinement layers.  Application developers struggle to maintain one set of CPU tasks for single CPU core execution, another set of GPU tasks written in CUDA code, and a third set of code for Xeon Phi parallel execution.  Uintah seeks a portable solution through 1) unifying Uintah API for CPU and GPU tasks, and 2) adopting Kokkos as a portability layer enabling developers to write task code once while maintaining performance. Currently, Kokkos only supports synchronous GPU data copies and code execution, and Kokkos itself must be modified for asynchrony to performantly execute GPU tasks in Uintah's AMT runtime.  This research will cover both Uintah API and Kokkos changes and demonstrate results by applying these changes to production ready tasks.  
+   
+An overview of other runtimes and parallel tools is given in Chapter 2.  Chapters 3 describes the prior state of Uintah’s GPU engine.  Chapter 4 outlines work completed to date.  Chapter 5 provides remaining work required to meet the full goal of this thesis.  Chapter 6 outlines the proposed thesis format.  The remainder of this document contains the Conclusion, references, and a list of my publications.   
+
+\end{abstract}
+
+\pagebreak
+\tableofcontents
+\pagebreak
+
+\cleardoublepage
+\pagenumbering{arabic}
+
+%\section{Introduction}
+%\label{ch:intro}
+
+
+%This part provides an overall introduction of your work, including
+%related work of your proposal.
+
+\section{Existing Runtime Systems and Parallel Tools}
+\label{ch:related}
+
+
+This part talks about related work of your proposal.
+
+\section{Uintah GPU Support Prior to This Research}
+\label{ch:proposal}
+
+Prior Uintah work [18] provided a simplistic model for GPU task execution.  First, a rudimentary GPU data store (hereafter referred to as a Basic GPU Data Store) was created to enable get() API calls from within CUDA code.  Second, the task scheduler was modified by implementing four new steps.  1) Prepare the task by synchronously copying every task simulation variable from host memory to device memory. 2) Synchronously copy the entire Basic GPU Data Store managed in host memory into GPU memory.  3) Synchronously execute the GPU kernel found within the task.  4) Perform a cleanup phase where all computed simulation variables are synchronously copied back to host.  
+	
+This prior GPU execution model had numerous deficiencies for both portability and performance, and was only suitable for large monolithic problems executing properly blocked GPU kernels which computed in the order of seconds.  For all other simulations using Uintah, the combination of synchronization barriers, PCIe bus contention, and duplicated simulation variables meant that simulations utilizing GPU tasks either ran slower than their CPU counterparts, or they could not fit within GPU memory.  
+
+\section{Current Work and Preliminary Results}
+\label{ch:proposal}
+
+The content of your proposal. Each topic occupies one section, each
+with their own conclusion and future work.
+
+\section{Work Plan and Implications}
+\label{ch:plan}
+
+Provide an overview of what you have done and what need to be done.
+
+\subsection{Thesis Format}
+\label{ch:format}
+
+\section{Conclusions}
+\label{ch:plan}
+
+
+%Table \ref{tab:plan} shows my plan for completion of the research.
+
+%\begin{table}[h]
+%\begin{small}
+%\begin{center}
+%\begin{tabular}{lll}
+%Timeline & Work & Progress\\
+%\hline
+%          & XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX & completed\\
+%Nov. xxxx & XXXXXXXXXXXXXXXXXXXXXXXXXXX & ongoing\\
+%Jan. xxxx & Thesis writting & \\
+%Feb. xxxx & Thesis defense & \\
+%\end{tabular}
+%\end{center}
+%\end{small}
+%\caption{Plan for completion of my research}
+%\label{tab:plan}
+%\end{table}
+
+%Thus, I plan to defend my thesis in XXX XXXX.
+
+\pagebreak
+
+\begin{footnotesize}
+\bibliographystyle{plain}
+\bibliography{string,itu,rfc,i-d}
+\end{footnotesize}
+
+\end{document}
+
+
