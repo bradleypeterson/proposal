@@ -1,15 +1,12 @@
 FILES = proposal.aux proposal.blg proposal.dvi proposal.log proposal.ps proposal.pdf
 
-proposal: proposal.tex proposal.bib
-	dvipdf proposal.dvi
-	dvips -o proposal.ps -t letter proposal.dvi
+PAPER = proposal
 
-bbl:
-	rm -rf proposal.bbl
-	latex proposal
-	bibtex proposal
-	latex proposal
-	latex proposal
+all :
+	pdflatex -shell-escape $(PAPER).tex
+	bibtex   $(PAPER)
+	pdflatex -shell-escape $(PAPER).tex
+	pdflatex -shell-escape $(PAPER).tex
 
-clean:
+clean :
 	rm -f $(FILES)
