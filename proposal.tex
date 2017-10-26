@@ -68,13 +68,77 @@ An overview of other runtimes and parallel tools is given in Chapter 2.  Chapter
 \section{Existing Runtime Systems and Parallel Tools}
 \label{ch:related}
 
+AMT runtimes that have demonstrated scalability at large-scale or plan to reach that goal use varied approaches to aid application developers in their GPU implementations.   No clear dominant pattern has emerged.  Rather, these projects are motivated both by target problems and intended audiences which largely drive their priorities and accompanying abstractions.  Likewise, many parallel tools supporting portability also take varied approaches to support targeted applications.  This chapter provides an overview of Uintah and its comparisons with other related AMT runtimes and tools.  
 
-This part talks about related work of your proposal.
+\subsection{AMT Runtimes}
+\label{ch:amt_runtimes}
+
+ 
+\begin{table}[]
+	\centering
+	\caption{My caption}
+	\label{table:runtimes}
+	\begin{tabular}{l|llllll}
+		\cline{2-7}
+		& \multicolumn{1}{c|}{Uintah}                                                       & \multicolumn{1}{c|}{Charm++}                               & \multicolumn{1}{c|}{Legion}                                & \multicolumn{1}{c|}{HPX}                                   & \multicolumn{1}{c|}{PaRSEC}                              & \multicolumn{1}{l|}{StarPU}                              \\ \hline
+		\multicolumn{1}{|l|}{Common  usage}                                                                     & \begin{tabular}[c]{@{}l@{}}Multiphysics\\ on an adaptive\\ mesh grid\end{tabular} & \begin{tabular}[c]{@{}l@{}}Generalized\\ tool\end{tabular} & \begin{tabular}[c]{@{}l@{}}Generalized\\ tool\end{tabular} & \begin{tabular}[c]{@{}l@{}}Generalized\\ tool\end{tabular} & \begin{tabular}[c]{@{}l@{}}Linear\\ algebra\end{tabular} & \begin{tabular}[c]{@{}l@{}}Linear\\ algebra\end{tabular} \\ \cline{1-1}
+		\multicolumn{1}{|l|}{\begin{tabular}[c]{@{}l@{}}Developer\\  involvement\\ with runtime\end{tabular}}   & Light                                                                             & Medium                                                     & Heavy                                                      & Medium                                                     & Medium                                                   & Medium                                                   \\ \cline{1-1}
+		\multicolumn{1}{|l|}{\begin{tabular}[c]{@{}l@{}}Automatic\\  internodal\\  data movement\end{tabular}}  & Yes                                                                               & \begin{tabular}[c]{@{}l@{}}Invoked \\ by user\end{tabular} & Yes                                                        & Yes                                                        & Yes                                                      & No                                                       \\ \cline{1-1}
+		\multicolumn{1}{|l|}{\begin{tabular}[c]{@{}l@{}}Automatic halo\\ gathering\end{tabular}}                & \begin{tabular}[c]{@{}l@{}}Host memory\\ (This work \\ for GPU)\end{tabular}      & No                                                         & Yes                                                        & No                                                         & Yes                                                      & No                                                       \\ \cline{1-1}
+		\multicolumn{1}{|l|}{\begin{tabular}[c]{@{}l@{}}Data store \\ for application\\ developer\end{tabular}} & \begin{tabular}[c]{@{}l@{}}Host memory\\ (This work \\ for GPU)\end{tabular}      & No                                                         & No                                                         & No                                                         & No                                                       & No                                                       \\ \cline{1-1}
+		\multicolumn{1}{|l|}{\begin{tabular}[c]{@{}l@{}}Automatic data\\ sharing among\\ tasks\end{tabular}}    & This work                                                                         & No                                                         & Yes                                                        & No                                                         & Yes                                                      & Yes                                                      \\ \cline{1-1}
+		\multicolumn{1}{|l|}{GPU support}                                                                       & Yes                                                                               & \begin{tabular}[c]{@{}l@{}}With\\  add-ons\end{tabular}    & Yes                                                        & No                                                         & Yes                                                      & Yes                                                      \\ \cline{1-1}
+		\multicolumn{1}{|l|}{\begin{tabular}[c]{@{}l@{}}Portable code \\ for CPU\\ and GPU tasks\end{tabular}}  & This work                                                                         & Weak                                                       & No                                                         & No                                                         & No                                                       & No                                                       \\ \cline{1-1}
+	\end{tabular}
+\end{table}
+
+A summary of several AMT runtimes is given in Table \ref{table:runtimes}.   Uintah []  is unique among these for several reasons.  Foremost among them is that Uintah is targetted for problems operating on a 3D adaptive mesh grid.  The other runtimes seek to be more generalized to work with any problems where the output of one task becomes the input for other tasks.   Uintah also provides data stores and simulation variable data types for many kinds of simulation variables that exist on the mesh grid, greatly aiding application developer productivity by not requiring the user define and develop their own data types.  As halo transfers are common in multiphysics problem operating in a grid, Uintah has extensive automatic halo support so that application developers are not involved in any aspect of halo processing both internodally and intranodally.  Uintah is designed to work with problems where a compute node can have thousands of tasks, thousands of simulation variables, and hundreds of thousands of data dependencies both locally and globally across many layers of an adaptive mesh refinement grid \cite{espm2-brad}.  
+
+Besides the high level goals of application developer separation with the runtime and automating halo transfers, Uintah also is designed to operate at full machine scale on current supercomputers like Titan and Mira.  (GET QUOTE FROM IJPP)  
+
+\subsubsection{Charm++}
+\label{ch:charmpp}
+Charm++ is designed for a wide audience as a large, monolithic tool aiding developers requiring a prebuilt, mature, AMT runtime. Central to Charm++'s theme is their notion of message passing between tasks.  Charm++ does not explicitly define tasks and does not have a task graph, but rather relies on an event driven, message passing interface using callback functions.  When some code unit completes, the developer is responsible for invoking the message to the runtime providing the next function to invoke.  
+
+Data movement to GPU memory and GPU code execution can be realized through their GPU Manager [].   While it is automatic in the sense that the GPU Manager will allocate GPU memory and perform host-to-device and device-to-host copies, the amount of development steps required to perform these steps are effectively equivalent to performing them through native CUDA code.  The GPU Manager requires the user provide their own CUDA kernels, amount of GPU memory buffers, and size of each buffer.  The user is also responsible for providing a callback functions when a GPU kernel completes.   Data copies and kernel execution can be realized asynchronously to support overlapping kernels.  The Accel framework [5] works on top of the GPU Manager and seeks to provide automatic CUDA kernel code generation, but its feature set is limited by effectively attempting to compile the same C++ code on a CPU compiler and then compiling it a second time on a CUDA compiler.
+
+\subsubsection{Legion}
+\label{ch:legion}
+The Legion [] runtime system handles automatic dependency management and concurrency by first requiring the application developer supply many more characteristics of a data structure’s data dependencies.  The application developer is expected to have a solid understanding of Legion’s theoretical framework and extensive API to properly code application tasks that interact with the runtime.  Where Uintah seeks ease of development for application developers, Legion insists developers retain as much control over parallelism and data movement as possible.  
+
+\subsubsection{HPX}
+\label{ch:hpx}
+HPX [] is a runtime system which recently reached version 1.0 but still awaits the introduction of many important features.  Its design strategy is both theoretical and bottom-up with the goal of providing a general asynchronous many-task runtime solution that is highly dependent on existing and forthcoming C++ standards.   HPX uses task scheduling and message passing to enable asynchrony and proper ordering of tasks.  At the moment, HPX has no built-in support for GPUs, data stores, automatic data dependency analysis, halo scattering and gathering, etc.   Internodal memory movement is achieved through a global address space []
+
+\subsubsection{PaRSEC}
+\label{ch:PaRSEC}
+
+\subsubsection{StarPU}
+\label{ch:StarPU}
+
+
+\subsection{Parallel Tools}
+
+
+Many tools exist to aid application developer productivity in abstracting the complexities involved with parallel programming.  These tools may seek to for code portability, code simplification, or memory management in multiple memory hierarchies.  AMT  may choose to utilize these tools to fulfill a specific need not yet met by the current runtime. 
+
+Provide blurb of descriptions from ESPM2 paper.
+
+\subsubsection{Kokkos}
+
+As Kokkos is central to this research, this particular tool is highlighted in more detail than the others.  Kokkos [] describes itself as “a programming model in C++ for writing performance portable applications targeting all major HPC platforms. For that purpose, it provides abstractions for both parallel execution of code and data management. Kokkos is designed to target complex node architectures with N-level memory hierarchies and multiple types of execution resources. It currently can use OpenMP, Pthreads and CUDA as backend programming models.”  The most fundamental component of Kokkos requires developers write functors or lambda expressions which are then placed inside a parallel\_for, parallel\_reduce, or parallel\_scan construct.  Alongside these parallel constructs are arguments specifying number of threads desired, execution patterns, and targeted execution space.  The architecture’s compiler then compiles the functors and lambda expressions for the target architecture, and Kokkos will execute the functors or lambda expressions in the manner specified.  
+
+The second major feature of Kokkos is aligning its parallel loops with the layout of data variables.  Kokkos maintains abstracted data objects supporting various layouts in up to 8 dimensions.   Kokkos Managed Views are data objects maintained by Kokkos itself, while Unmanaged Views are simply wrapped data pointers.  Managed Views have API to aid in copying data between memory spaces, such as host memory and GPU memory, but each host-to-device and device-to-host copy comes with the cost of a synchronization barrier.  Kokkos also maintains additional API to aid developers with portability libraries for atomic operations, locking mechanisms, basic task graph implementations, and random number generation.
+  
+Kokkos does not have any support for a concurrent data store interface, internode memory movement, automatic data gathering, asynchrony in data movement, heterogeneity in task scheduling, or overlapping of GPU execution.
+
+
+TODO: Uintah figure.
 
 \section{Uintah GPU Support Prior to This Research}
 \label{ch:proposal}
 
-Prior Uintah work [18] provided a simplistic model for GPU task execution.  First, a rudimentary GPU data store (hereafter referred to as a Basic GPU Data Store) was created to enable get() API calls from within CUDA code.  Second, the task scheduler was modified by implementing four new steps.  1) Prepare the task by synchronously copying every task simulation variable from host memory to device memory. 2) Synchronously copy the entire Basic GPU Data Store managed in host memory into GPU memory.  3) Synchronously execute the GPU kernel found within the task.  4) Perform a cleanup phase where all computed simulation variables are synchronously copied back to host.  
+Prior Uintah work [] provided a simplistic model for GPU task execution.  First, a rudimentary GPU data store (hereafter referred to as a Basic GPU Data Store) was created to enable get() API calls from within CUDA code.  Second, the task scheduler was modified by implementing four new steps.  1) Prepare the task by synchronously copying every task simulation variable from host memory to device memory. 2) Synchronously copy the entire Basic GPU Data Store managed in host memory into GPU memory.  3) Synchronously execute the GPU kernel found within the task.  4) Perform a cleanup phase where all computed simulation variables are synchronously copied back to host.  
 	
 This prior GPU execution model had numerous deficiencies for both portability and performance, and was only suitable for large monolithic problems executing properly blocked GPU kernels which computed in the order of seconds.  For all other simulations using Uintah, the combination of synchronization barriers, PCIe bus contention, and duplicated simulation variables meant that simulations utilizing GPU tasks either ran slower than their CPU counterparts, or they could not fit within GPU memory.  
 
