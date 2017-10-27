@@ -15,8 +15,8 @@
 \contentsline {subsubsection}{\numberline {3.1.3}Task Data Stores}{7}
 \contentsline {subsubsection}{\numberline {3.1.4}Global Halos in the GPU Data Warehouse}{7}
 \contentsline {subsubsection}{\numberline {3.1.5}Distributing Tasks Among a GPU}{9}
-\contentsline {subsection}{\numberline {3.2}Modifying Kokkos for Asynchrony}{10}
-\contentsline {section}{\numberline {4}Work Plan and Implications}{10}
+\contentsline {subsection}{\numberline {3.2}Modifying Kokkos for Asynchrony}{9}
+\contentsline {section}{\numberline {4}Future Work Plan and Implications}{10}
 \contentsline {subsection}{\numberline {4.1}Performance}{10}
 \contentsline {subsubsection}{\numberline {4.1.1}Task Scheduler Modifications}{10}
 \contentsline {subsubsection}{\numberline {4.1.2}Halo Gathering}{11}
@@ -25,6 +25,7 @@
 \contentsline {subsubsection}{\numberline {4.2.2}Kokkos Modfications}{11}
 \contentsline {subsubsection}{\numberline {4.2.3}Uintah Integration with Kokkos}{11}
 \contentsline {subsection}{\numberline {4.3}Limitations of Work Plan}{11}
-\contentsline {subsection}{\numberline {4.4}Thesis Format}{12}
-\contentsline {section}{\numberline {5}Conclusions}{13}
-\contentsline {section}{\numberline {6}Publications}{13}
+\contentsline {section}{\numberline {5}Thesis Format}{12}
+\contentsline {section}{\numberline {6}Thesis Plan}{13}
+\contentsline {section}{\numberline {7}Conclusions}{13}
+\contentsline {section}{\numberline {8}Publications}{13}
