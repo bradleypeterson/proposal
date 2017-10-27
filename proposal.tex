@@ -4,6 +4,7 @@
 \usepackage{epsfig}
 \usepackage{times}
 \usepackage{amsmath}
+\usepackage{wrapfig}
 
 % <http://psl.cs.columbia.edu/phdczar/proposal.html>:
 %
@@ -45,9 +46,9 @@ Nvidia GPUs introduce numerous challenges in maintaining this clear separation b
 
 The focus of this research is largely split into two main parts, performance and portability.  Runtime performance comes from 1) preparing and executing a heterogeneous mixture of tasks to keep compute node processing units busy and 2) minimizing runtime overhead when preparing tasks for execution.  Uintah's target problems heavily rely on halo data dependencies, and so automated halo processing receives significant emphasis.  In addition, this work covers automated data movement of simulation variables between host and GPU memory as well as distributing tasks throughout a GPU for execution.   This work does not describe strategies for optimizing task code, as that is an application developer responsibility.  Rather, this work enables application developers to achieve good wall time performance with low runtime overhead.   
 
-Portability is becoming an productivity necessity for Uintah application developers as simulations can require a compute node process thousands of tasks with thousands of simulation variables and potentially hundreds of thousands of data dependencies across multiple adaptive mesh refinement layers.  Application developers struggle to maintain one set of CPU tasks for single CPU core execution, another set of GPU tasks written in CUDA code, and a third set of code for Xeon Phi parallel execution.  Uintah seeks a portable solution through 1) unifying Uintah API for CPU and GPU tasks, and 2) adopting Kokkos as a portability layer enabling developers to write task code once while maintaining performance. Currently, Kokkos only supports synchronous GPU data copies and code execution, and Kokkos itself must be modified for asynchrony to performantly execute GPU tasks in Uintah's AMT runtime.  This research will cover both Uintah API and Kokkos changes and demonstrate results by applying these changes to production ready tasks.  
+Portability is becoming an productivity necessity for Uintah application developers.  Application developers struggle to maintain one set of CPU tasks for single CPU core execution, another set of GPU tasks written in CUDA code, and a third set of code for Xeon Phi parallel execution.  Uintah seeks a portable solution through 1) unifying Uintah API for CPU and GPU tasks, and 2) adopting Kokkos as a portability layer enabling developers to write task code once while maintaining performance. Currently, Kokkos only supports synchronous GPU data copies and code execution, and Kokkos itself must be modified for asynchrony to performantly execute GPU tasks in Uintah's AMT runtime.  This research will cover both Uintah API and Kokkos changes and demonstrate results by applying these changes to production ready tasks.  
    
-An overview of other runtimes and parallel tools is given in Chapter 2.  Chapters 3 describes the prior state of Uintah’s GPU engine.  Chapter 4 outlines work completed to date.  Chapter 5 provides remaining work required to meet the full goal of this thesis.  Chapter 6 outlines the proposed thesis format.  The remainder of this document contains the Conclusion, references, and a list of my publications.   
+An overview of other runtimes and parallel tools is given in Chapter \ref{ch:related}.  Chapter \ref{ch:uintah_prior} describes the prior state of Uintah’s GPU engine.  Chapter \ref{ch:uintah_current} outlines work completed to date.  Chapter \ref{ch:workplan} provides remaining work required to meet the full goal of this thesis.  Chapter \ref{ch:thesis_format} outlines the proposed thesis format.  The remainder of this document contains the conclusion, references, and a list of my publications.   
 
 \end{abstract}
 
@@ -70,7 +71,7 @@ An overview of other runtimes and parallel tools is given in Chapter 2.  Chapter
 
 AMT runtimes that have demonstrated scalability at large-scale or plan to reach that goal use varied approaches to aid application developers in their GPU implementations.   No clear dominant pattern has emerged.  Rather, these projects are motivated both by target problems and intended audiences which largely drive their priorities and accompanying abstractions.  Likewise, many parallel tools supporting portability also take varied approaches to support targeted applications.  This chapter provides an overview of Uintah and its comparisons with other related AMT runtimes and tools.  
 
-\subsection{AMT Runtimes}
+\subsection{Uintah and other AMT Runtimes}
 \label{ch:amt_runtimes}
 
  
@@ -80,7 +81,8 @@ AMT runtimes that have demonstrated scalability at large-scale or plan to reach 
 	\label{table:runtimes}
 	\begin{tabular}{l|llllll}
 		\cline{2-7}
-		& \multicolumn{1}{c|}{Uintah}                                                       & \multicolumn{1}{c|}{Charm++}                               & \multicolumn{1}{c|}{Legion}                                & \multicolumn{1}{c|}{HPX}                                   & \multicolumn{1}{c|}{PaRSEC}                              & \multicolumn{1}{l|}{StarPU}                              \\ \hline
+		& \multicolumn{1}{c|}{Uintah}
+		                                                       & \multicolumn{1}{c|}{Charm++}                               & \multicolumn{1}{c|}{Legion}                                & \multicolumn{1}{c|}{HPX}                                   & \multicolumn{1}{c|}{PaRSEC}                              & \multicolumn{1}{l|}{StarPU}                              \\ \hline
 		\multicolumn{1}{|l|}{Common  usage}                                                                     & \begin{tabular}[c]{@{}l@{}}Multiphysics\\ on an adaptive\\ mesh grid\end{tabular} & \begin{tabular}[c]{@{}l@{}}Generalized\\ tool\end{tabular} & \begin{tabular}[c]{@{}l@{}}Generalized\\ tool\end{tabular} & \begin{tabular}[c]{@{}l@{}}Generalized\\ tool\end{tabular} & \begin{tabular}[c]{@{}l@{}}Linear\\ algebra\end{tabular} & \begin{tabular}[c]{@{}l@{}}Linear\\ algebra\end{tabular} \\ \cline{1-1}
 		\multicolumn{1}{|l|}{\begin{tabular}[c]{@{}l@{}}Developer\\  involvement\\ with runtime\end{tabular}}   & Light                                                                             & Medium                                                     & Heavy                                                      & Medium                                                     & Medium                                                   & Medium                                                   \\ \cline{1-1}
 		\multicolumn{1}{|l|}{\begin{tabular}[c]{@{}l@{}}Automatic\\  internodal\\  data movement\end{tabular}}  & Yes                                                                               & \begin{tabular}[c]{@{}l@{}}Invoked \\ by user\end{tabular} & Yes                                                        & Yes                                                        & Yes                                                      & No                                                       \\ \cline{1-1}
@@ -92,69 +94,139 @@ AMT runtimes that have demonstrated scalability at large-scale or plan to reach 
 	\end{tabular}
 \end{table}
 
-A summary of several AMT runtimes is given in Table \ref{table:runtimes}.   Uintah []  is unique among these for several reasons.  Foremost among them is that Uintah is targetted for problems operating on a 3D adaptive mesh grid.  The other runtimes seek to be more generalized to work with any problems where the output of one task becomes the input for other tasks.   Uintah also provides data stores and simulation variable data types for many kinds of simulation variables that exist on the mesh grid, greatly aiding application developer productivity by not requiring the user define and develop their own data types.  As halo transfers are common in multiphysics problem operating in a grid, Uintah has extensive automatic halo support so that application developers are not involved in any aspect of halo processing both internodally and intranodally.  Uintah is designed to work with problems where a compute node can have thousands of tasks, thousands of simulation variables, and hundreds of thousands of data dependencies both locally and globally across many layers of an adaptive mesh refinement grid \cite{espm2-brad}.  
+A summary of several AMT runtimes is given in Table \ref{table:runtimes}.   Uintah ~\cite{MB-UUSCI-2012-001,wolfhpc12}  is unique among these runtimes in its combination of three high level goals 1) separating the application developer from the runtime through automated data stores and halo transfers, 2) support for a mixture of problems containing both local halo and global or nearly global halos and across multiple adaptive mesh refinement levels, and (3) ability to reach full scale on current machines like Titan.  Further, Uintah's target problems operate on a 3D adaptive mesh grid, whereas the other runtimes seek for a more generalized solution where output of one task becomes the input for other tasks.  Uintah is designed to work with problems where a compute node can have thousands of tasks, thousands of simulation variables, and millions of data dependencies both locally and globally across many layers of an adaptive mesh refinement grid \cite{espm2-brad}.  To the best of our knowledge, no other runtime can support such large, globally coupled problems with minimal application developer interaction.  
+\begin{wrapfigure}{r}{8cm}
+	\centering
+	\includegraphics[width=8cm]{figures/Uintah_modules_simplified.png}
+	\caption{Organization of major components and modules comprising Uintah}
+	\label{fig:uintah-structure}
+\end{wrapfigure}
+ 
+\begin{wrapfigure}[12]{R}{8cm}
+	\centering
+	\includegraphics[width=8cm]{figures/stencil27-task.png}
+	\caption{A Uintah task declaration which informs the runtime of a 27-point GPU stencil computation on a single Uintah grid variable.}
+	\label{fig:stencil27-task}
+\end{wrapfigure}
 
-Besides the high level goals of application developer separation with the runtime and automating halo transfers, Uintah also is designed to operate at full machine scale on current supercomputers like Titan and Mira.  (GET QUOTE FROM IJPP)  
+Uintah has been shown to scale to 16K nodes using GPUs on Titan~\cite{uintah-2016-titan-scaling} and 768K cores on Mira~\cite{uintah-2016-mira-scaling}.   In a search of literature, we found that Legion has been demonstrated to scale to 8K nodes on Titan~\cite{legion-2014-thesis-scaling}, Charm++ to 512K cores on Mira~\cite{charmpp-2017-scaling}, HPX to 1K nodes~\cite{HPX-scaling-global-address-space}, PaRSEC to 23,868 cores on Kraken~\cite{parsec-2014-scaling}, and StarPU to 256 nodes on the Occigen cluster located at CINES, France~\cite{starpu-2016-scaling}. 
+
+
+Uintah is structured at a high level as shown in Figure \ref{fig:uintah-structure}. Uintah application developers supply tasks indicating all simulation variables required, including any needed halo cells.  An example task is shown in Figure \ref{fig:stencil27-task}.  The task code for that example task is found in the \emph{Stencil27::taskMethod()} function.  Currently Uintah application developers supply CPU code, GPU CUDA code, or Kokkos parallel code in task functions.  In the task declaration, had the application developer not specified \emph{Ghost::AroundNodes, 1} for one cell layer of halo dependencies for that simulation variable, but rather \emph{Ghost::AroundNodes, 100} or \emph{Ghost::AroundNodes, 32767}, Uintah would automatically handle all halo management on a nearly global or global scale.  After all tasks are defined, the Uintah runtime processes these tasks into a distributed directed acyclic graph (DAG) of tasks.  Prior to task execution, the runtime prepares task simulation variables by issuing MPI sends and receives, and then gathers all halo data into simulation variables in host and GPU memory.  A task flows through various queues as its simulation variables are prepared and the task staged for execution.  The task itself can retrieve simulation variables from the data stores, further aiding application developer productivity.
+
+
+
+
 
 \subsubsection{Charm++}
 \label{ch:charmpp}
-Charm++ is designed for a wide audience as a large, monolithic tool aiding developers requiring a prebuilt, mature, AMT runtime. Central to Charm++'s theme is their notion of message passing between tasks.  Charm++ does not explicitly define tasks and does not have a task graph, but rather relies on an event driven, message passing interface using callback functions.  When some code unit completes, the developer is responsible for invoking the message to the runtime providing the next function to invoke.  
+Charm++~\cite{charmpp1993} is designed for a wide audience as a large, monolithic tool aiding developers requiring a prebuilt, mature, AMT runtime. Central to Charm++'s theme is their notion of message passing between tasks.  Charm++ does not explicitly define tasks and does not have a task graph, but rather relies on an event driven, message passing interface using callback functions.  When some code unit completes, the developer is responsible for invoking the message to the runtime providing the next function to invoke.  
 
-Data movement to GPU memory and GPU code execution can be realized through their GPU Manager [].   While it is automatic in the sense that the GPU Manager will allocate GPU memory and perform host-to-device and device-to-host copies, the amount of development steps required to perform these steps are effectively equivalent to performing them through native CUDA code.  The GPU Manager requires the user provide their own CUDA kernels, amount of GPU memory buffers, and size of each buffer.  The user is also responsible for providing a callback functions when a GPU kernel completes.   Data copies and kernel execution can be realized asynchronously to support overlapping kernels.  The Accel framework [5] works on top of the GPU Manager and seeks to provide automatic CUDA kernel code generation, but its feature set is limited by effectively attempting to compile the same C++ code on a CPU compiler and then compiling it a second time on a CUDA compiler.
+Data movement to GPU memory and GPU code execution can be realized through their GPU Manager~\cite{charmpp-masters-gpumanager}.   While it is automatic in the sense that the GPU Manager will allocate GPU memory and perform host-to-device and device-to-host copies, the amount of development steps required to perform these steps are effectively equivalent to performing them through native CUDA code.  The GPU Manager requires the user provide their own CUDA kernels, amount of GPU memory buffers, and size of each buffer.  The user is also responsible for providing a callback functions when a GPU kernel completes.   Data copies and kernel execution can be realized asynchronously to support overlapping kernels.  The Accel framework~\cite{charmpp-thesis-accel} works on top of the GPU Manager and seeks to provide automatic CUDA kernel code generation, but its feature set is limited by effectively attempting to compile the same C++ code on a CPU compiler and then compiling it a second time on a CUDA compiler.
 
 \subsubsection{Legion}
 \label{ch:legion}
-The Legion [] runtime system handles automatic dependency management and concurrency by first requiring the application developer supply many more characteristics of a data structure’s data dependencies.  The application developer is expected to have a solid understanding of Legion’s theoretical framework and extensive API to properly code application tasks that interact with the runtime.  Where Uintah seeks ease of development for application developers, Legion insists developers retain as much control over parallelism and data movement as possible.  
+The Legion~\cite{legion2012} runtime system handles automatic dependency management and concurrency by first requiring the application developer supply many more characteristics of a data structure’s data dependencies.  The application developer is expected to have a solid understanding of Legion’s theoretical framework and extensive API to properly code application tasks that interact with the runtime.  Where Uintah seeks ease of development for application developers, Legion insists developers retain as much control over parallelism and data movement as possible.  
 
 \subsubsection{HPX}
 \label{ch:hpx}
-HPX [] is a runtime system which recently reached version 1.0 but still awaits the introduction of many important features.  Its design strategy is both theoretical and bottom-up with the goal of providing a general asynchronous many-task runtime solution that is highly dependent on existing and forthcoming C++ standards.   HPX uses task scheduling and message passing to enable asynchrony and proper ordering of tasks.  At the moment, HPX has no built-in support for GPUs, data stores, automatic data dependency analysis, halo scattering and gathering, etc.   Internodal memory movement is achieved through a global address space []
+HPX~\cite{HPX-scaling-global-address-space} is a runtime system which recently reached version 1.0 but still awaits the introduction of many important features.  Its design strategy is both theoretical and bottom-up with the goal of providing a general asynchronous many-task runtime solution that is highly dependent on existing and forthcoming C++ standards.   HPX uses task scheduling and message passing to enable asynchrony and proper ordering of tasks.  At the moment, HPX has no built-in support for GPUs, data stores, automatic data dependency analysis, halo scattering and gathering, etc.   Internodal memory movement is achieved through a global address space.
 
 \subsubsection{PaRSEC}
 \label{ch:PaRSEC}
+PaRSEC~\cite{parsec2012} contains many similarities with Uintah in that the runtime automates data transfer both through MPI for internode communication and between host and GPU memory for intranode communication.  In PaRSEC, data coherence utilizes a simplified version of the MOESI cache coherency protocol~\cite{parsec-coherency}.  Data dependencies are expressed by defining data flows among tasks using their customized JDF Format to help generate PaRSEC's DAG.  If MPI is used, the user provides nodal communication information through a process patterned after MPI\_Datatypes. 
 
 \subsubsection{StarPU}
 \label{ch:StarPU}
-
+StarPU \cite{starpu} manages data copying and data coherency in different memory spaces using a process very similar to cache coherency protocols.  Halo transfers must be accomplished through user defined tasks, and some application developer interaction is required to aid StarPU in MPI transfers among nodes.  
 
 \subsection{Parallel Tools}
+\label{ch:parallel_tools}
+
+Many tools exist to aid application developer productivity in abstracting the complexities involved with parallel programming.  These tools may seek to for code portability, code simplification, or memory management in multiple memory hierarchies.  AMT may choose to utilize these tools to fulfill a specific need not yet met by the current runtime. 
+
+When a Uintah task is executed, the runtime runs the user supplied task entry function.  Within the entry function an application developer typically writes serial C++ code for CPU and Xeon Phi tasks and CUDA parallel code for GPU tasks.  That entry function could utilize other parallel tools such as OpenCL \cite{opencl-specification}, OpenACC \cite{openacc-25}, OpenMP \cite{openmp}, Raja \cite{raja}, or Kokkos \cite{kokkos2012}.  Uintah application developers have not used OpenCL as its performance often lags behind CUDA code \cite{Sorman2016}.  OpenACC has not been used as it has no Xeon Phi KNL support.  OpenMP 4.0 can work for Xeon Phi KNLs, but OpenMP itself does not offer Uintah a fully portable solution as current GPU implementations are limited and lacking in GPU performance\cite{Martineau2016}.  Raja and Kokkos share high level similarities in utilizing lambda expressions for portability and performance with minimal disruptions to application developers.  Future Uintah work is focused on utilizing Kokkos as its current feature set is more extensive and mature.  Regarding memory management, CUDA offers compelling features such as CUDA-aware MPI and Unified Memory to reduce the amount of temporary halo buffers and provides automatic memory movement between host and GPU memory.  Uintah does not restrict itself to only CUDA-aware MPI implementations, and Uintah provides automatic packed halo buffers which can then be made to work with GPUDirect if needed.  Uintah does not use Unified Memory as CUDA kernels operating in a Unified Memory environment demonstrate significantly slower execution times \cite{Landaverde2014AnIO}, and any GPU-to-host memory transfer requires a synchronization barrier prior to CUDA Compute Capability 6.x or expensive page faulting for Compute Capability 6.x \cite{nvidia-programming-guide-80}.  We desire performant kernels executing concurrently on numerous GPU streams without any synchronization and as a result we use the Uintah runtime to automate halo transfers and data movement between host and GPU memory without blocking operations.
 
 
-Many tools exist to aid application developer productivity in abstracting the complexities involved with parallel programming.  These tools may seek to for code portability, code simplification, or memory management in multiple memory hierarchies.  AMT  may choose to utilize these tools to fulfill a specific need not yet met by the current runtime. 
-
-Provide blurb of descriptions from ESPM2 paper.
 
 \subsubsection{Kokkos}
-
-As Kokkos is central to this research, this particular tool is highlighted in more detail than the others.  Kokkos [] describes itself as “a programming model in C++ for writing performance portable applications targeting all major HPC platforms. For that purpose, it provides abstractions for both parallel execution of code and data management. Kokkos is designed to target complex node architectures with N-level memory hierarchies and multiple types of execution resources. It currently can use OpenMP, Pthreads and CUDA as backend programming models.”  The most fundamental component of Kokkos requires developers write functors or lambda expressions which are then placed inside a parallel\_for, parallel\_reduce, or parallel\_scan construct.  Alongside these parallel constructs are arguments specifying number of threads desired, execution patterns, and targeted execution space.  The architecture’s compiler then compiles the functors and lambda expressions for the target architecture, and Kokkos will execute the functors or lambda expressions in the manner specified.  
+\label{ch:Kokkos}
+As Kokkos~\cite{kokkos2012} is central to this research, Kokkos is described in more detail here.  Kokkos describes itself as “a programming model in C++ for writing performance portable applications targeting all major HPC platforms. For that purpose, it provides abstractions for both parallel execution of code and data management. Kokkos is designed to target complex node architectures with N-level memory hierarchies and multiple types of execution resources. It currently can use OpenMP, Pthreads and CUDA as backend programming models.”  The most fundamental component of Kokkos requires developers write functors or lambda expressions which are then placed inside a parallel\_for, parallel\_reduce, or parallel\_scan construct.  Alongside these parallel constructs are arguments specifying number of threads desired, execution patterns, and targeted execution space.  The architecture’s compiler then compiles the functors and lambda expressions for the target architecture, and Kokkos will execute the functors or lambda expressions in the manner specified.  
 
 The second major feature of Kokkos is aligning its parallel loops with the layout of data variables.  Kokkos maintains abstracted data objects supporting various layouts in up to 8 dimensions.   Kokkos Managed Views are data objects maintained by Kokkos itself, while Unmanaged Views are simply wrapped data pointers.  Managed Views have API to aid in copying data between memory spaces, such as host memory and GPU memory, but each host-to-device and device-to-host copy comes with the cost of a synchronization barrier.  Kokkos also maintains additional API to aid developers with portability libraries for atomic operations, locking mechanisms, basic task graph implementations, and random number generation.
+
+
   
 Kokkos does not have any support for a concurrent data store interface, internode memory movement, automatic data gathering, asynchrony in data movement, heterogeneity in task scheduling, or overlapping of GPU execution.
 
 
-TODO: Uintah figure.
 
 \section{Uintah GPU Support Prior to This Research}
-\label{ch:proposal}
+\label{ch:uintah_prior}
 
-Prior Uintah work [] provided a simplistic model for GPU task execution.  First, a rudimentary GPU data store (hereafter referred to as a Basic GPU Data Store) was created to enable get() API calls from within CUDA code.  Second, the task scheduler was modified by implementing four new steps.  1) Prepare the task by synchronously copying every task simulation variable from host memory to device memory. 2) Synchronously copy the entire Basic GPU Data Store managed in host memory into GPU memory.  3) Synchronously execute the GPU kernel found within the task.  4) Perform a cleanup phase where all computed simulation variables are synchronously copied back to host.  
+Prior Uintah work~\cite{wolfhpc12} provided a simplistic model for GPU task execution.  First, a rudimentary GPU data store (hereafter referred to as a Basic GPU Data Store) was created to enable get() API calls from within CUDA code.  Second, the task scheduler was modified by implementing four new steps.  1) Prepare the task by synchronously copying every task simulation variable from host memory to device memory. 2) Synchronously copy the entire Basic GPU Data Store managed in host memory into GPU memory.  3) Synchronously execute the GPU kernel found within the task.  4) Perform a cleanup phase where all computed simulation variables are synchronously copied back to host.  
 	
 This prior GPU execution model had numerous deficiencies for both portability and performance, and was only suitable for large monolithic problems executing properly blocked GPU kernels which computed in the order of seconds.  For all other simulations using Uintah, the combination of synchronization barriers, PCIe bus contention, and duplicated simulation variables meant that simulations utilizing GPU tasks either ran slower than their CPU counterparts, or they could not fit within GPU memory.  
 
 \section{Current Work and Preliminary Results}
-\label{ch:proposal}
+\label{ch:uintah_current}
+
+Need blurb
+
+\subsection{GPU/Heterogenous Data Warehouses and Task Scheduler}
+\label{ch:data warehouses}
+
+The Wasatch project~\cite{wasatch-2015} and its accompanying Embedded Domain Specific Language (EDSL) called Nebo \cite{nebo_2015, sutherland_discrete_2011} led by James Sutherland and Tony Saad utilized Uintah with numerous short-lived GPU tasks which exposed performance flaws in the runtime.  The movement of many simulation variables into GPU memory and back to host memory took longer than the task execution.  However, most of this data movement was unnecessary as the only time simulation variables were required in host memory was to perform MPI sends and receives.  In response, a new GPU data store (GPU Data Warehouse) was implemented to give the Uintah runtime an expanded API to manage simulation variables in GPU memory~\cite{wolfhpc15}.  Simulation variables were also still tracked in the Basic GPU Data Store in host memory which would then be copied into GPU memory.  
+
+\subsubsection{Simulation Variable Coherency}
+\label{ch:simulation_variable_coherency}
+
+An expanded task scheduler was paired with the GPU Data Warehouse to verify the status of any simulation variable in GPU memory.  The task scheduler prepared simulation variables prior to GPU task execution through allocation, host-to-device copies, and halo copies.  The halo management was the most complicated feature.  Halo copying metadata was placed into the Basic GPU Data Store to ensure all halo copies occurred in GPU memory, not host memory.  The cumulative effects of these changes for Wasatch tasks is seen in Figure XXXX.
+
+An atomic bitset was added to each simulation variable’s entry in the GPU Data Warehouse to track a simulation variable’s lifetime.  Task scheduler threads coordinated with one another by atomically querying these bitsets to ensure no two threads prepared the same data action.  This change allowed the runtime to 1) simultaneously prepare two or more tasks sharing the same simulation variable 2) reduced memory usage in GPU memory
+
+\subsubsection{Task Data Stores}
+\label{ch:task_data_warehouse}
+Another GPU runtime enhancement reduced the size and enabled heterogeneous concurrency of the Basic GPU Data Store.  The GPU Data Warehouse generated a Basic GPU Data Store giving each task its own version of the data store containing only the simulation variables it requires.  These data stores are termed Task Data Stores.  .  As shown in Figure XXXX, the time spent copying data into GPU memory has been drastically reduced.  Task scheduler threads could copy Task Data Stores into GPU memory without interfering with each other, enable full concurrency of GPU tasks by allowing  kernel overlapping.  Figure XXXX demonstrates this overlapping while running long-lived Reverse Monte-Carlo Ray Tracing (RMCRT) tasks.  
+
+\subsubsection{Global Halos in the GPU Data Warehouse}
+\label{ch:global_halos_gpu_data_warehouse}
+The GPU Data Warehouse was further modified to avoid data duplication in the presence of global data dependencies.  This change was motivated by a recent production run on the DOE Titan supercomputer for a proposed high efficiency coal boiler.  The GPU Data Warehouse and accompanying task scheduler only supported tasks sharing simulation variables, but not sharing of halo data.  The GPU Data Warehouse was modified to allow multiple data warehouse entries to create and use a shared data object~\cite{espm2-brad}.  Likewise, task scheduler threads coordinated to ensure no two threads created duplicates of the shared data object.  The result of these changes reduced memory usage allowing the problem to fit into GPU memory as shown in Table XXXX.  
+Memory Overhead Improvements
+Simulation patch layout	Host memory usage before (MB)	Host memory usage after (MB)
+Coarse: 323 cells, 43 patches
+Fine: 643 cells, 43 patches	3073	65
+Coarse: 323 cells, 43 patches
+Fine: 1283 cells, 43 patches	23229	279
+Coarse: 643 cells, 43 patches
+Fine: 1283 cells, 43 patches	Exceeded memory	311
+Table 1: Memory reductions from sharing halo data among simulation variables.  Global data dependencies previously required each simulation variable to have its own copy of the entire domain.   
+Figure 4 demonstrates that the combined data warehouse and task scheduler work completed so far has enabled substantial speedups.  
+
+
+\subsection{Generalizing Task Execution}
+\label{ch:generalizing_task_execution}
+Obtaining performance on GPUs is frequently achieved through many small blocks of kernel execution rather than large monolithic kernels.  The GPU can distribute many small kernels among all of its streaming multiprocessors (SMXs).  Using Uintah to over-decompose a problem into finer execution units is difficult due to finding a suitable decomposition geometry and increased dependency analysis among many more tasks.  A solution was found~\cite{espm2-brad} where a task could split itself into many kernels, with each kernel executing on a different stream.  This modification enables Uintah to saturate a GPU no matter how many SMXs it has.   Figure 5 demonstrates that more kernels for a task do a better job of keeping a GPU occupied during a time step.    
+
+%\subsection{Reduction of Dependency Analysis}
+%In preparation for the recent production coal boiler run, the Uintah runtime had major performance deficiencies analyzing all dependencies among nodes in the presence of global data dependencies.  Each task was responsible for determining what messages it must send out and what messages it must receive.  The first trial run of the production problem performed this analysis phase in 4.5 hours.  A dependency search algorithm was implemented to restrict dependency searches among tasks by finding maximum extents each task has within the simulation.  For example, a task that simply computes simulation variables does not specify any halo extents.  However, by analyzing how that simulation variable is used throughout other tasks, a vast swath of potential dependencies can be ruled out.  In the production problem, dependency analysis was reduced 93% to 20 minutes, with most of the remaining time due to an unrelated problem finding cell extents among multiple adaptive mesh refinement layers.    
+
+\subsection{Modifying Kokkos for Asynchrony}
+Kokkos’s memory movement and kernel execution for Nvidia GPUs is similar to Uintah’s GPU runtime two years ago.  CUDA barriers are used extensively to avoid concurrency issues.  Users using Kokkos must work with large, monolithic GPU kernels, which requires subdiving a functor into enough threads to properly fit within all GPU SMXs.  This approach puts a difficult burden on application developers trying to properly size and partition problems.  Further, with Uintah usually running each task on a 163 region of cells, it is difficult to subdivide such small regions to distribute throughout the GPU.  
+
+Recent work modified Kokkos to support asynchrony of Kokkos parallel\_for code.  Under-the-hood the Kokkos engine now allows multiple threads to claim a region of GPU constant cache memory, asynchronously copy the functor’s information into that space, then launch the kernel to execute that functor.  A visual representation of this is given in Figure 6.  CUDA streams themselves are encapsulated into Kokkos::Cuda objects, and reference counting ensures that when all instances of the object are destructed the stream itself is reclaimed.  This allows any developer using Kokkos parallel\_for constructs to overlap kernels with only one minor modification to their existing code. 
+
 
 The content of your proposal. Each topic occupies one section, each
 with their own conclusion and future work.
 
 \section{Work Plan and Implications}
-\label{ch:plan}
+\label{ch:workplan}
 
 Provide an overview of what you have done and what need to be done.
 
 \subsection{Thesis Format}
-\label{ch:format}
+\label{ch:thesis_format}
 
 \section{Conclusions}
 \label{ch:plan}
@@ -185,7 +257,7 @@ Provide an overview of what you have done and what need to be done.
 
 \begin{footnotesize}
 \bibliographystyle{plain}
-\bibliography{string,itu,rfc,i-d}
+\bibliography{proposal}
 \end{footnotesize}
 
 \end{document}
