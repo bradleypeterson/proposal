@@ -164,72 +164,205 @@ Kokkos does not have any support for a concurrent data store interface, internod
 \section{Uintah GPU Support Prior to This Research}
 \label{ch:uintah_prior}
 
-Prior Uintah work~\cite{wolfhpc12} provided a simplistic model for GPU task execution.  First, a rudimentary GPU data store (hereafter referred to as a Basic GPU Data Store) was created to enable get() API calls from within CUDA code.  Second, the task scheduler was modified by implementing four new steps.  1) Prepare the task by synchronously copying every task simulation variable from host memory to device memory. 2) Synchronously copy the entire Basic GPU Data Store managed in host memory into GPU memory.  3) Synchronously execute the GPU kernel found within the task.  4) Perform a cleanup phase where all computed simulation variables are synchronously copied back to host.  
+Prior Uintah work~\cite{wolfhpc12} provided a simplistic model for GPU task execution to target a reverse Monte Carlo Ray Tracing (RMCRT) component.  RMCRT tasks were long-lived (on the order or seconds to minutes) and required global or nearly global halos.  The prior work implemented rudimentary GPU data store (hereafter referred to as a Basic GPU Data Store) was created to enable get() API calls from within CUDA code.  Second, the task scheduler was modified by implementing four new steps.  1) Prepare the task by synchronously copying every task simulation variable from host memory to device memory. 2) Synchronously copy the entire Basic GPU Data Store managed in host memory into GPU memory.  3) Synchronously execute the GPU kernel found within the task.  4) Perform a cleanup phase where all computed simulation variables are synchronously copied back to host.  
 	
 This prior GPU execution model had numerous deficiencies for both portability and performance, and was only suitable for large monolithic problems executing properly blocked GPU kernels which computed in the order of seconds.  For all other simulations using Uintah, the combination of synchronization barriers, PCIe bus contention, and duplicated simulation variables meant that simulations utilizing GPU tasks either ran slower than their CPU counterparts, or they could not fit within GPU memory.  
 
 \section{Current Work and Preliminary Results}
 \label{ch:uintah_current}
 
-Need blurb
+Most of the chapter is summarized from work in my prior publications~\cite{saahpc-2010-brad, wolfhpc15,ijpp16, espm2-brad}.  The first publication describes experiences learned from storing particles on a mesh in GPU memory to achieve better performance.  The latter three publications describe work directly with Uintah itself enabling Uintah to open itself up to more classes of problems.  
 
 \subsection{GPU/Heterogenous Data Warehouses and Task Scheduler}
 \label{ch:data warehouses}
 
-The Wasatch project~\cite{wasatch-2015} and its accompanying Embedded Domain Specific Language (EDSL) called Nebo \cite{nebo_2015, sutherland_discrete_2011} led by James Sutherland and Tony Saad utilized Uintah with numerous short-lived GPU tasks which exposed performance flaws in the runtime.  The movement of many simulation variables into GPU memory and back to host memory took longer than the task execution.  However, most of this data movement was unnecessary as the only time simulation variables were required in host memory was to perform MPI sends and receives.  In response, a new GPU data store (GPU Data Warehouse) was implemented to give the Uintah runtime an expanded API to manage simulation variables in GPU memory~\cite{wolfhpc15}.  Simulation variables were also still tracked in the Basic GPU Data Store in host memory which would then be copied into GPU memory.  
+The Wasatch project~\cite{wasatch-2015} and its accompanying Embedded Domain Specific Language (EDSL) called Nebo \cite{nebo_2015, sutherland_discrete_2011} led by James Sutherland and Tony Saad utilized Uintah with numerous short-lived GPU tasks which exposed performance flaws in the runtime.  The movement of many simulation variables into GPU memory and back to host memory took longer than the task execution.  However, most of this data movement was unnecessary as the only time simulation variables were required in host memory was to perform MPI sends and receives.  Uintah needed a solution that efficiently supported short-lived tasks with local halo transfers while also supporting the RMCRT component's long-lived tasks with global halo transfers.
+
+
+
+
+\subsubsection{Processing Halo Data in GPU Memory}
+\label{ch:processing_halo_data_gpu_memory}
+
+
+
+A new GPU data store (GPU Data Warehouse) was implemented to give the Uintah runtime an expanded API to manage simulation variables in GPU memory~\cite{wolfhpc15}.  Simulation variables were also still tracked in the Basic GPU Data Store in host memory which would then be copied into GPU memory.  Several additional halo transferring scenarios were implemented (GPU-to-GPU, host-to-GPU, GPU-to-host, GPU-to-another MPI rank, another MPI rank-to-GPU). The Uintah framework automatically performed all halo transfers for all scenarios.   Contiguous packed halo buffers were created and Uintah launched CUDA kernels responsible for writing data into or out of these packed buffers.  For a sample Poisson problem, this improved engine improved simulation wall times with 2.82x to 5.39x speedups.   The cumulative effects of these changes for Wasatch tasks is seen in Figure~\ref{fig:wasatch-speedups}.  
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.70\textwidth]{figures/wasatch_test_bar_chart-highquality.png}
+	\caption{Short-lived GPU tasks were most susceptible to runtime overhead.  Performing halo gathers entirely in GPU memory helped make total GPU simulation wall times tasks faster than CPU simulations.  Computations performed on an Nvidia GTX 680 GPU with CUDA 6.5 and an Intel Xeon E5-2620.}
+	\label{fig:wasatch-speedups}
+\end{figure}
 
 \subsubsection{Simulation Variable Coherency}
 \label{ch:simulation_variable_coherency}
 
-An expanded task scheduler was paired with the GPU Data Warehouse to verify the status of any simulation variable in GPU memory.  The task scheduler prepared simulation variables prior to GPU task execution through allocation, host-to-device copies, and halo copies.  The halo management was the most complicated feature.  Halo copying metadata was placed into the Basic GPU Data Store to ensure all halo copies occurred in GPU memory, not host memory.  The cumulative effects of these changes for Wasatch tasks is seen in Figure XXXX.
+An expanded task scheduler was paired with the GPU Data Warehouse to verify the status of any simulation variable in GPU memory.  The task scheduler prepared simulation variables prior to GPU task execution through allocation, host-to-GPU copies, and halo copies.  An atomic bitset was added to each simulation variable’s entry in the GPU Data Warehouse to track a simulation variable’s lifetime~\cite{ijpp16}.  Task scheduler threads coordinated with one another by atomically querying these bitsets to ensure no two threads prepared the same data action.  This change allowed the runtime to 1) simultaneously prepare two or more tasks sharing the same simulation variable, and 2) reduced memory usage in GPU memory.
 
-An atomic bitset was added to each simulation variable’s entry in the GPU Data Warehouse to track a simulation variable’s lifetime.  Task scheduler threads coordinated with one another by atomically querying these bitsets to ensure no two threads prepared the same data action.  This change allowed the runtime to 1) simultaneously prepare two or more tasks sharing the same simulation variable 2) reduced memory usage in GPU memory
 
 \subsubsection{Task Data Stores}
 \label{ch:task_data_warehouse}
-Another GPU runtime enhancement reduced the size and enabled heterogeneous concurrency of the Basic GPU Data Store.  The GPU Data Warehouse generated a Basic GPU Data Store giving each task its own version of the data store containing only the simulation variables it requires.  These data stores are termed Task Data Stores.  .  As shown in Figure XXXX, the time spent copying data into GPU memory has been drastically reduced.  Task scheduler threads could copy Task Data Stores into GPU memory without interfering with each other, enable full concurrency of GPU tasks by allowing  kernel overlapping.  Figure XXXX demonstrates this overlapping while running long-lived Reverse Monte-Carlo Ray Tracing (RMCRT) tasks.  
+
+
+Another GPU runtime enhancement reduced the size and enabled heterogeneous concurrency of the Basic GPU Data Store~\cite{wolfhpc15}.  The GPU Data Warehouse generated a Basic GPU Data Store giving each task its own version of the data store containing only the simulation variables it requires.  These data stores are termed Task Data Stores.   As shown in Figure~\ref{fig:task-data-warehouse}, the time spent copying data into GPU memory has been drastically reduced.  Task scheduler threads could copy Task Data Stores into GPU memory without interfering with each other, enable full concurrency of GPU tasks by allowing kernel overlapping~\cite{ijpp16}.  Figure~\ref{fig:rmcrt-overlap} demonstrates this overlapping while running long-lived RMCRT tasks.  
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.80\textwidth]{figures/task_datawarehouse.png}
+	\caption{Significant size reduction of Basic GPU Data Store objects better supports GPU tasks which execute on the order of milliseconds.  The Task Data Stores are not shared between tasks, enabling GPU task asynchrony and overlapping. }
+	\label{fig:task-data-warehouse}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.80\textwidth]{figures/rmcrt_after_zoomed_sidebar.png}
+	\caption{Data sharing and among tasks and GPU Task Data Stores allows the Uintah runtime to asynchronously invokes 16 sets of host-to-device copies followed by GPU task kernel executions.  Computations performed on 16 RMCRT tasks per time step on an Nvidia K20c GPU.}
+	\label{fig:rmcrt-overlap}
+\end{figure}
 
 \subsubsection{Global Halos in the GPU Data Warehouse}
 \label{ch:global_halos_gpu_data_warehouse}
-The GPU Data Warehouse was further modified to avoid data duplication in the presence of global data dependencies.  This change was motivated by a recent production run on the DOE Titan supercomputer for a proposed high efficiency coal boiler.  The GPU Data Warehouse and accompanying task scheduler only supported tasks sharing simulation variables, but not sharing of halo data.  The GPU Data Warehouse was modified to allow multiple data warehouse entries to create and use a shared data object~\cite{espm2-brad}.  Likewise, task scheduler threads coordinated to ensure no two threads created duplicates of the shared data object.  The result of these changes reduced memory usage allowing the problem to fit into GPU memory as shown in Table XXXX.  
-Memory Overhead Improvements
-Simulation patch layout	Host memory usage before (MB)	Host memory usage after (MB)
-Coarse: 323 cells, 43 patches
-Fine: 643 cells, 43 patches	3073	65
-Coarse: 323 cells, 43 patches
-Fine: 1283 cells, 43 patches	23229	279
-Coarse: 643 cells, 43 patches
-Fine: 1283 cells, 43 patches	Exceeded memory	311
-Table 1: Memory reductions from sharing halo data among simulation variables.  Global data dependencies previously required each simulation variable to have its own copy of the entire domain.   
-Figure 4 demonstrates that the combined data warehouse and task scheduler work completed so far has enabled substantial speedups.  
+The GPU Data Warehouse was further modified to avoid data duplication in the presence of global data dependencies.  This change was motivated by a recent production run on the DOE Titan supercomputer for a proposed high efficiency coal boiler.  The GPU Data Warehouse and accompanying task scheduler only supported tasks sharing simulation variables, but not sharing of halo data.  The GPU Data Warehouse was modified to allow multiple data warehouse entries to create and use a shared data object~\cite{espm2-brad}.  Likewise, task scheduler threads coordinated to ensure no two threads created duplicates of the shared data object.  The result of these changes reduced memory usage allowing the problem to fit into GPU memory as shown in Table \ref{table:phase_times}.  
 
+\begin{table}[]
+	\centering
 
-\subsection{Generalizing Task Execution}
+	\label{table:phase_times}
+	\begin{tabular}{|l|c|c|}
+	\hline
+	\multicolumn{3}{|c|}{Memory Overhead Improvements}                                                                                                                                                                                                                   \\ \hline
+	Simulation patch layout                                                                                          & \begin{tabular}[c]{@{}c@{}}Host memory usage\\  before (MB)\end{tabular} & \begin{tabular}[c]{@{}c@{}}Host memory usage\\ after (MB)\end{tabular} \\ \hline
+	\begin{tabular}[c]{@{}l@{}}Coarse: $32^3$ cells, $4^3$ patches\\ Fine: $64^3$ cells, $4^3$ patches\end{tabular}  & 3073                                                                     & 65                                                                     \\ \hline
+	\begin{tabular}[c]{@{}l@{}}Coarse: $32^3$ cells, $4^3$ patches\\ Fine: $128^3$ cells, $4^3$ patches\end{tabular} & 23229                                                                    & 279                                                                    \\ \hline
+	\begin{tabular}[c]{@{}l@{}}Coarse: $64^3$ cells, $4^3$ patches\\ Fine: $128^3$ cells, $4^3$patches\end{tabular}  & Exceeded memory                                                          & 311                                                                    \\ \hline
+	\end{tabular}
+	\caption{Memory reductions from sharing halo data among simulation variables.  Global data dependencies previously required each simulation variable to have its own copy of the entire domain.}
+\end{table}
+
+The cumulative work represented in the three prior published paper~\cite{wolfhpc15,ijpp16,espm2-brad} can be seen in Figure~\ref{fig:rmcrt-cumulative} as combined data warehouse and task scheduler work completed so far has enabled substantial speedups
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.70\textwidth]{figures/rmcrt-cumulative.png}
+	\caption{Speedups of one to two orders of magnitude of the Uintah GPU runtime from before this work until December 2016.   }
+	\label{fig:rmcrt-cumulative}
+\end{figure}
+
+\subsubsection{Distributing Tasks Among a GPU}
 \label{ch:generalizing_task_execution}
-Obtaining performance on GPUs is frequently achieved through many small blocks of kernel execution rather than large monolithic kernels.  The GPU can distribute many small kernels among all of its streaming multiprocessors (SMXs).  Using Uintah to over-decompose a problem into finer execution units is difficult due to finding a suitable decomposition geometry and increased dependency analysis among many more tasks.  A solution was found~\cite{espm2-brad} where a task could split itself into many kernels, with each kernel executing on a different stream.  This modification enables Uintah to saturate a GPU no matter how many SMXs it has.   Figure 5 demonstrates that more kernels for a task do a better job of keeping a GPU occupied during a time step.    
+Obtaining performance on GPUs is frequently achieved through many small blocks of kernel execution rather than large monolithic kernels.  The GPU can distribute many small kernels among all of its streaming multiprocessors (SMXs).  Using Uintah to over-decompose a problem into finer execution units is difficult due to finding a suitable decomposition geometry and increased dependency analysis among many more tasks.  A solution was found~\cite{espm2-brad} where a task could split itself into many kernels, with each kernel executing on a different stream.  This modification enables Uintah to saturate a GPU no matter how many SMXs it has.   Figure~\ref{fig:rmcrt-distributing-tasks} demonstrates that more kernels for a task do a better job of keeping a GPU occupied during a time step.    
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.60\textwidth]{figures/phaseiii-multistream-300rays-28x28x56_8threads_6streams_crop.png}
+	\caption{Splitting GPU task into many smaller kernels each with its own stream allows Uintah to occupy all GPU SMXs during the majority of a timestep.  This configuration allows Uintah to run on GPUs with varying SMX amounts, freeing the application developer from retooling the decomposition to fit the machine.  Computations performed on 16 RMCRT tasks per time step on an Nvidia K20c GPU.   }
+	\label{fig:rmcrt-distributing-tasks}
+\end{figure}
+
+
+
 
 %\subsection{Reduction of Dependency Analysis}
 %In preparation for the recent production coal boiler run, the Uintah runtime had major performance deficiencies analyzing all dependencies among nodes in the presence of global data dependencies.  Each task was responsible for determining what messages it must send out and what messages it must receive.  The first trial run of the production problem performed this analysis phase in 4.5 hours.  A dependency search algorithm was implemented to restrict dependency searches among tasks by finding maximum extents each task has within the simulation.  For example, a task that simply computes simulation variables does not specify any halo extents.  However, by analyzing how that simulation variable is used throughout other tasks, a vast swath of potential dependencies can be ruled out.  In the production problem, dependency analysis was reduced 93% to 20 minutes, with most of the remaining time due to an unrelated problem finding cell extents among multiple adaptive mesh refinement layers.    
 
+
+
 \subsection{Modifying Kokkos for Asynchrony}
-Kokkos’s memory movement and kernel execution for Nvidia GPUs is similar to Uintah’s GPU runtime two years ago.  CUDA barriers are used extensively to avoid concurrency issues.  Users using Kokkos must work with large, monolithic GPU kernels, which requires subdiving a functor into enough threads to properly fit within all GPU SMXs.  This approach puts a difficult burden on application developers trying to properly size and partition problems.  Further, with Uintah usually running each task on a 163 region of cells, it is difficult to subdivide such small regions to distribute throughout the GPU.  
+\label{ch:kokkos_modifications}
+Kokkos’s memory movement and kernel execution for Nvidia GPUs is similar to Uintah’s GPU runtime two years ago.  CUDA barriers are used extensively to avoid concurrency issues.  Users using Kokkos must work with large, monolithic GPU kernels, which requires subdiving a functor into enough threads to properly fit within all GPU SMXs.  This approach puts a difficult burden on application developers trying to properly size and partition problems.  Further, with Uintah usually running each task on a $16^3$ region of cells, it is difficult to subdivide such small regions to distribute throughout the GPU.  
 
-Recent work modified Kokkos to support asynchrony of Kokkos parallel\_for code.  Under-the-hood the Kokkos engine now allows multiple threads to claim a region of GPU constant cache memory, asynchronously copy the functor’s information into that space, then launch the kernel to execute that functor.  A visual representation of this is given in Figure 6.  CUDA streams themselves are encapsulated into Kokkos::Cuda objects, and reference counting ensures that when all instances of the object are destructed the stream itself is reclaimed.  This allows any developer using Kokkos parallel\_for constructs to overlap kernels with only one minor modification to their existing code. 
+Recent work modified Kokkos to support asynchrony of Kokkos parallel\_for code.  Under-the-hood the Kokkos engine now allows multiple threads to claim a region of GPU constant cache memory, asynchronously copy the functor’s information into that space, then launch the kernel to execute that functor.  A visual representation of this is given in Figure~\cite{fig:kokkos-constant-cache-new}.  CUDA streams themselves are encapsulated into Kokkos::Cuda objects, and reference counting ensures that when all instances of the object are destructed the stream itself is reclaimed.  This allows any developer using Kokkos parallel\_for constructs to overlap kernels with only one minor modification to their existing code. 
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.60\textwidth]{figures/Kokkos_constant_cache_new.png}
+	\caption{Data for multiple functors can be staged into GPU Constant memory, executed, and tracked with CUDA Events.   }
+	\label{fig:kokkos-constant-cache-new}
+\end{figure}
 
-The content of your proposal. Each topic occupies one section, each
-with their own conclusion and future work.
 
 \section{Work Plan and Implications}
 \label{ch:workplan}
 
-Provide an overview of what you have done and what need to be done.
+\subsection{Performance}
+\label{ch:workplan-performance}
+\subsubsection{Task Scheduler Modifications}
+\label{ch:task-scheduler-modification}
+Currently the OnDemand Data Warehouse allocates space on-the-fly during task execution for host memory simulation variables.  To support sharing data objects and a unified code base, this model must change so that that simulation variables are allocated prior to task execution.   Allocations should not happen through an allocateAndPut(), but rather before the task executes.  This change requires that allocateAndPut() will simply act as a get() API call.
+
+Any task simulation variables identified as computes should be pre-sized for upcoming halo cells based on the what can be inferred.  Determining a proper size is a challenge as the initialization time step has no information as to what halo cells will soon be found in a normal time step.  Resizing variables in GPU memory may also be a messy procedure.  
+
+\subsubsection{Halo Gathering}
+\label{ch:workplan-halo-gathering}
+Using packed contiguous buffers to transfer halo data is the correct approach~\cite{ijpp16}, however, Uintah's current implementation requires more fine tuning to reach this potential. Currently both James Sutherland and I have recognized unwanted performance deficiencies in the current approach of utilizing a GPU kernel to gather in halo cells.   The CUDA kernel is not operating at high efficiency, and some investigation is needed to reduce overhead of utilizing these packed halo buffers. 
+
+\subsection{Portability}
+\label{ch:workplan-portability}
+\subsubsection{Unifying the Data Warehouses into One Codebase}
+\label{ch:workplan-unified-data-warehouse}
+The OnDemand Data Warehouse and the GPU Data Warehouse have very different philosophies which need to be merged into one codebase.  The OnDemand Data Warehouse largely avoids concurrency issues by duplicating simulation variables any time halo copying occurs or when two or more tasks share a simulation variable.  
+
+As Uintah is heavily implemented with OnDemand Data Warehouse code throughout, future work will preserve this class and merge GPU Data Warehouse concurrency and data sharing functionality into it.  This may require making the underlying map data structure lock free.  This work may be troublesome as the Uintah codebase is large and complex, with numerous code hacks for various edge cases.  My initial assumption is that it's likely some developers will insist on backwards compatibility for their edge cases with their legacy code.
+
+\subsubsection{Kokkos Modfications}
+\label{ch:workplan-kokkos-modifications}
+Uintah utilizes the Kokkos parallel\_for and parallel\_reduce constructs.  The work achieved for the parallel\_for and for CUDA GPU tasks needs further investigation and implementation into Kokkos.  The overall goal here is to deliver updates useful to the Kokkos project, and not just Uintah. 
+\subsubsection{Uintah Integration with Kokkos}
+\label{ch:workplan-kokkos-integration}
+Results will be limited to existing tasks already written using CUDA code or Kokkos constructs.  This work plan will not attempt to rewrite any existing task into GPU or Kokkos code.   RMCRT is an excellent target task.  We have tuned CPU code, Kokkos code, and GPU code.  Arches has tasks written with CPU code and Kokkos code.  
+
+\subsection{Limitations of Work Plan}
+\label{ch:workplan-limitations}
+Some limitations in upcoming work will likely occur as occasionally developers write tasks that conflict with Uintah philosophy.  Five examples are 1) developers have been manually allocating their own simulation variables and performing their own halo cell gathers using a getRegion() call. 2) Application developers sometimes perform a Data Warehouse get() API call despite the task not previously listing that simulation variable. 3) A task may attempt to obtain both a CPU and GPU data pointer.  4) Developers utilize Uintah templated simulation variables with non-standard types (e.g. a CCVariable with a custom Vector object).  5) CPU and Xeon Phi tasks make OS API calls which are unavailable to GPUs.  For these reasons, it is very unlikely this work can achieve a full production run of the recent coal boiler multiphysics simulation on GPUs.  This work instead will provide the mechanism so Kokkos enabled tasks can run on GPUs if properly designed.  
+
 
 \subsection{Thesis Format}
 \label{ch:thesis_format}
 
+My proposed thesis structure is as follows:\\
+\\
+\textbf{ABSTRACT}\\
+\textbf{CHAPTER 1 – Introduction}\\
+A description for the motivation of this project, past contributions, and the prior state of Uintah’s GPU functionality.\\  
+\textbf{CHAPTER 2 – Related Frameworks and Tools}\\
+This chapter will be an expanded form of this document’s overview of related tools, with the purpose of demonstrating the novelty of this research.\\  
+\textbf{CHAPTER 3 – Uintah Overview and Application Developer API}\\
+Chapter 3 will contain an overview of the many moving parts that enable Uintah to function.  A description will be given of all steps required for an application developer to create and execute CPU and GPU tasks.\\  
+\textbf{CHAPTER 4 -- A Host and GPU Data Store Enabling Concurrency, Asynchrony, and Data Sharing}\\ 
+This chapter will contain an overview of the existing OnDemand Data Warehouse, including its strengths and limitations.  One section will cover the GPU Data Warehouse including its iterations, with a demonstration at each iteration what new characteristics it achieved.  This chapter should conclude with a data warehouse design using a unified codebase managing data in both host memory and GPU memory.\\  
+\textbf{CHAPTER 5 – Uintah Heterogenous/GPU Task Scheduling and Execution}\\
+Task schedulers are the glue enabling the Uintah data store to achieve concurrency, asynchrony, and sharing of data.  This chapter will analyze and report the many steps of a task lifetime: simulation variable preparation, halo cell gathering, task execution, and task cleanup.\\ 
+\textbf{CHAPTER 6 – Kokkos Code Modifications for Asynchrony of Data Movement and Execution}\\
+Kokkos has strong potential as a portable code solution for Uintah, but its GPU performance is currently basic and limited.  In particular, Kokkos frequently utilizes synchronization barriers and has no mechanisms to support computation. This chapter will describe how Kokkos itself was modified to achieve full asynchrony.\\
+\textbf{CHAPTER 7 – Kokkos and GPU Integration Into Uintah}\\
+I desire this chapter to be the capstone of this work, demonstrating both performance and portability using production scale multiphysics tasks, while simultaneously minimizing application developer interaction with specific architectures.  This chapter will highlight the ease which an application developer can create a task and performantly execute it on a GPU, CPU, or Xeon Phi.  Some specific integration details are needed, such as transposing simulation variables and utilizing Kokkos Unmanaged Views.\\  
+\textbf{CHAPTER 8 – Conclusions and Future work}\\
+\textbf{APPENDIX}\\
+\textbf{REFERENCES}\\
+
+
 \section{Conclusions}
-\label{ch:plan}
+\label{ch:conclusions}
+
+The high-level goal of past and ongoing research is demonstrating both portability and performance of GPU enabled tasks for a production problem in the Uintah AMT runtime system.  The portability goal should preserve Uintah’s philosophy of requiring minimal runtime API interaction with the application developer while allowing tasks written with Kokkos to run on multiple architectures.  The performance goal minimizes runtime wall time overhead and simulation variable duplication in memory.   When completed, this will make Uintah the first mature AMT runtime that has a combination of simulation variable management, GPU portability, performance, and ease of application task development. 
+
+\section{Publications}
+
+\textbf{B. Peterson}, A. Humphrey, J. Schmidt, M. Berzins.  “Addressing Global Data Dependencies in Heterogenous Asynchronous Runtime Systems on GPUs”, In {Proceedings of the Third International Workshop on Extreme Scale Programming Models and Middleware (ESPM2'17)}, 2017. \\
+\\
+D. Sunderland, \textbf{B. Peterson}, J. Schmidt, A. Humphrey, J. Thornock, and M. Berzins. “An Overview of Performance Portability in the Uintah Runtime System Through the Use of Kokkos.”  In \textit{Proceedings of the Second International Workshop on Extreme Scale Programming Models and Middleware (ESPM2)}. IEEE Press, Piscataway, NJ, USA, 44-47. 2016.\\
+\\
+\textbf{B. Peterson}, N. Xiao, J. Holmen, S. Chaganti, A. Pakki, J. Schmidt, D. Sunderland, A. Humphrey, M. Berzins. “Developing Uintah’s Runtime System For Forthcoming Architectures,” Subtitled “Refereed paper presented at the RESPA 15 Workshop at SuperComputing 2015 Austin Texas,” \textit{SCI Institute}, 2015.\\
+\\
+\textbf{B. Peterson}, H. K. Dasari, A. Humphrey, J.C. Sutherland, T. Saad, M. Berzins. “Reducing overhead in the Uintah framework to support short-lived tasks on GPU-heterogeneous architectures,” In \textit{Proceedings of the 5th International Workshop on Domain-Specific Languages and High-Level Frameworks for High Performance Computing (WOLFHPC'15)}, ACM, pp. 4:1-4:8. 2015.\\
+\\
+\textbf{B. Peterson}, M. Datar, M. Hall, R. Whitaker.  "GPU accelerated particle system for triangulated surface meshes,” \textit{In Proceedings of the Symposium on Application Accelerators in High Performance Computing (SAAHPC)}, 2010.\\
+\\
+\textbf{Publications in Progress}\\
+\\
+\textbf{B. Peterson}, H. K. Dasari, A. Humphrey, J.C. Sutherland, T. Saad, M. Berzins. “Reducing overhead in the Uintah framework to support short-lived tasks on GPU-heterogeneous architectures,” Submitted International Journal of Parallel Programming, 2016.\\
+
 
 
 %Table \ref{tab:plan} shows my plan for completion of the research.

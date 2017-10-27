@@ -145,13 +145,6 @@ Q.~Meng, A.~Humphrey, and M.~Berzins.
 \newblock In {\em Digital Proceedings of Supercomputing 12 - WOLFHPC Workshop}.
   IEEE, 2012.
 
-\bibitem{notz2012graph}
-Patrick~K Notz, Roger~P Pawlowski, and James~C Sutherland.
-\newblock {Graph}-based software design for managing complexity and enabling
-  concurrency in multiphysics {PDE} software.
-\newblock {\em ACM Transactions on Mathematical Software (TOMS)}, 39(1):1,
-  2012.
-
 \bibitem{nvidia-programming-guide-80}
 Nvidia.
 \newblock {CUDA} {C} {P}rogramming {G}uide v8.0 {W}eb page - {J}. {U}nified
@@ -169,12 +162,26 @@ Nvidia.
 {OpenMP Architecture Review Board}.
 \newblock Openmp application program interface version 4.0, 2013.
 
+\bibitem{ijpp16}
+B.~Peterson, H.~Dasari, A.~Humphrey, D.~Sunderland, J.~Sutherland, T.~Saad, and
+  M.~Berzins.
+\newblock {Reducing Overhead in the Uintah Framework to Support Short-Lived
+  Tasks on GPU-Heterogeneous Architectures}.
+\newblock {\em \emph{Submitted} International Journal of Parallel Programming,
+  2016}, 2016.
+
+\bibitem{saahpc-2010-brad}
+B.~Peterson, M.~Datar, M.~Hall, and R.~Whitaker.
+\newblock Gpu accelerated particle system for triangulated surface meshes.
+\newblock In {\em Proceedings of the Symposium on Application Accelerators in
+  High Performance Computing}, SAAHPC, 2010.
+
 \bibitem{espm2-brad}
 B.~Peterson, A.~Humphrey, J.~Schmidt, and M.~Berzins.
 \newblock {Addressing} {Global} {Data} {Dependencies} in {Heterogeneous}
   {Asynchronous} {Runtime} {Systems} on {GPUs}.
-\newblock In {\em Submitted - Third International Workshop on Extreme Scale
-  Programming Models and Middleware}, ESPM2. IEEE Press, 2017.
+\newblock In {\em Proceedings of the Third International Workshop on Extreme
+  Scale Programming Models and Middleware}, ESPM2. IEEE Press, 2017.
 
 \bibitem{wolfhpc15}
 Brad Peterson, Harish Dasari, Alan Humphrey, James Sutherland, Tony Saad, and

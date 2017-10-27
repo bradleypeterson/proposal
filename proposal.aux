@@ -52,27 +52,79 @@
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.1}Kokkos}{4}}
 \newlabel{ch:Kokkos}{{1.2.1}{4}}
 \citation{wolfhpc12}
+\citation{saahpc-2010-brad}
+\citation{wolfhpc15}
+\citation{ijpp16}
+\citation{espm2-brad}
 \citation{wasatch-2015}
 \citation{nebo_2015}
 \citation{sutherland_discrete_2011}
-\citation{wolfhpc15}
 \@writefile{toc}{\contentsline {section}{\numberline {2}Uintah GPU Support Prior to This Research}{5}}
 \newlabel{ch:uintah_prior}{{2}{5}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Current Work and Preliminary Results}{5}}
 \newlabel{ch:uintah_current}{{3}{5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}GPU/Heterogenous Data Warehouses and Task Scheduler}{5}}
-\newlabel{ch:data warehouses}{{3.1}{5}}
+\citation{wolfhpc15}
+\citation{ijpp16}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Short-lived GPU tasks were most susceptible to runtime overhead. Performing halo gathers entirely in GPU memory helped make total GPU simulation wall times tasks faster than CPU simulations. Computations performed on an Nvidia GTX 680 GPU with CUDA 6.5 and an Intel Xeon E5-2620.}}{6}}
+\newlabel{fig:wasatch-speedups}{{3}{6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}GPU/Heterogenous Data Warehouses and Task Scheduler}{6}}
+\newlabel{ch:data warehouses}{{3.1}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.1}Processing Halo Data in GPU Memory}{6}}
+\newlabel{ch:processing_halo_data_gpu_memory}{{3.1.1}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.2}Simulation Variable Coherency}{6}}
+\newlabel{ch:simulation_variable_coherency}{{3.1.2}{6}}
+\citation{wolfhpc15}
+\citation{ijpp16}
+\citation{espm2-brad}
+\citation{wolfhpc15}
+\citation{ijpp16}
 \citation{espm2-brad}
 \citation{espm2-brad}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Generalizing Task Execution}{6}}
-\newlabel{ch:generalizing_task_execution}{{3.2}{6}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Modifying Kokkos for Asynchrony}{7}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Work Plan and Implications}{7}}
-\newlabel{ch:workplan}{{4}{7}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Thesis Format}{7}}
-\newlabel{ch:thesis_format}{{4.1}{7}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusions}{7}}
-\newlabel{ch:plan}{{5}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Significant size reduction of Basic GPU Data Store objects better supports GPU tasks which execute on the order of milliseconds. The Task Data Stores are not shared between tasks, enabling GPU task asynchrony and overlapping. }}{7}}
+\newlabel{fig:task-data-warehouse}{{4}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.3}Task Data Stores}{7}}
+\newlabel{ch:task_data_warehouse}{{3.1.3}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.4}Global Halos in the GPU Data Warehouse}{7}}
+\newlabel{ch:global_halos_gpu_data_warehouse}{{3.1.4}{7}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Data sharing and among tasks and GPU Task Data Stores allows the Uintah runtime to asynchronously invokes 16 sets of host-to-device copies followed by GPU task kernel executions. Computations performed on 16 RMCRT tasks per time step on an Nvidia K20c GPU.}}{8}}
+\newlabel{fig:rmcrt-overlap}{{5}{8}}
+\newlabel{table:phase_times}{{3.1.4}{8}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Memory reductions from sharing halo data among simulation variables. Global data dependencies previously required each simulation variable to have its own copy of the entire domain.}}{8}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Speedups of one to two orders of magnitude of the Uintah GPU runtime from before this work until December 2016. }}{9}}
+\newlabel{fig:rmcrt-cumulative}{{6}{9}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.1.5}Distributing Tasks Among a GPU}{9}}
+\newlabel{ch:generalizing_task_execution}{{3.1.5}{9}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Splitting GPU task into many smaller kernels each with its own stream allows Uintah to occupy all GPU SMXs during the majority of a timestep. This configuration allows Uintah to run on GPUs with varying SMX amounts, freeing the application developer from retooling the decomposition to fit the machine. Computations performed on 16 RMCRT tasks per time step on an Nvidia K20c GPU. }}{9}}
+\newlabel{fig:rmcrt-distributing-tasks}{{7}{9}}
+\citation{fig:kokkos-constant-cache-new}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Data for multiple functors can be staged into GPU Constant memory, executed, and tracked with CUDA Events. }}{10}}
+\newlabel{fig:kokkos-constant-cache-new}{{8}{10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Modifying Kokkos for Asynchrony}{10}}
+\newlabel{ch:kokkos_modifications}{{3.2}{10}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Work Plan and Implications}{10}}
+\newlabel{ch:workplan}{{4}{10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Performance}{10}}
+\newlabel{ch:workplan-performance}{{4.1}{10}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}Task Scheduler Modifications}{10}}
+\newlabel{ch:task-scheduler-modification}{{4.1.1}{10}}
+\citation{ijpp16}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Halo Gathering}{11}}
+\newlabel{ch:workplan-halo-gathering}{{4.1.2}{11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Portability}{11}}
+\newlabel{ch:workplan-portability}{{4.2}{11}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Unifying the Data Warehouses into One Codebase}{11}}
+\newlabel{ch:workplan-unified-data-warehouse}{{4.2.1}{11}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Kokkos Modfications}{11}}
+\newlabel{ch:workplan-kokkos-modifications}{{4.2.2}{11}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.3}Uintah Integration with Kokkos}{11}}
+\newlabel{ch:workplan-kokkos-integration}{{4.2.3}{11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Limitations of Work Plan}{11}}
+\newlabel{ch:workplan-limitations}{{4.3}{11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Thesis Format}{12}}
+\newlabel{ch:thesis_format}{{4.4}{12}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusions}{13}}
+\newlabel{ch:conclusions}{{5}{13}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Publications}{13}}
 \bibstyle{plain}
 \bibdata{proposal}
 \bibcite{starpu-2016-scaling}{1}
@@ -95,14 +147,15 @@
 \bibcite{Landaverde2014AnIO}{18}
 \bibcite{Martineau2016}{19}
 \bibcite{wolfhpc12}{20}
-\bibcite{notz2012graph}{21}
-\bibcite{nvidia-programming-guide-80}{22}
-\bibcite{openacc-25}{23}
-\bibcite{openmp}{24}
-\bibcite{espm2-brad}{25}
-\bibcite{wolfhpc15}{26}
-\bibcite{raja}{27}
-\bibcite{wasatch-2015}{28}
-\bibcite{Sorman2016}{29}
-\bibcite{sutherland_discrete_2011}{30}
-\bibcite{charmpp-masters-gpumanager}{31}
+\bibcite{nvidia-programming-guide-80}{21}
+\bibcite{openacc-25}{22}
+\bibcite{openmp}{23}
+\bibcite{ijpp16}{24}
+\bibcite{saahpc-2010-brad}{25}
+\bibcite{espm2-brad}{26}
+\bibcite{wolfhpc15}{27}
+\bibcite{raja}{28}
+\bibcite{wasatch-2015}{29}
+\bibcite{Sorman2016}{30}
+\bibcite{sutherland_discrete_2011}{31}
+\bibcite{charmpp-masters-gpumanager}{32}
