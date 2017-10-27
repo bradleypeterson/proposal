@@ -1,39 +1,32 @@
 \begin{thebibliography}{10}
 
-\bibitem{starpu-2016-scaling}
-Emmanuel Agullo, Olivier Aumage, Mathieu Faverge, Nathalie Furmento, Florent
-  Pruvost, Marc Sergent, and Samuel Thibault.
-\newblock {Achieving High Performance on Supercomputers with a Sequential
-  Task-based Programming Model}.
-\newblock {\em {IEEE Transactions on Parallel and Distributed Systems}}, 2017.
-
-\bibitem{starpu}
-C\'edric Augonnet, Samuel Thibault, Raymond Namyst, and Pierre-Andr\'e;
-  Wacrenier.
-\newblock {StarPU}: {A} {Unified} {Platform} for {Task} {Scheduling} on
-  {Heterogeneous} {Multicore} {Architectures}.
-\newblock {\em Concurr. Comput. : Pract. Exper.}, 23(2):187--198, February
-  2011.
-
-\bibitem{legion2012}
-Michael Bauer, Sean Treichler, Elliott Slaughter, and Alex Aiken.
-\newblock {Legion}: {Expressing} {Locality} and {Independence} with {Logical}
-  {Regions}.
-\newblock In {\em Proceedings of the International Conference on High
-  Performance Computing, Networking, Storage and Analysis}, SC '12, pages
-  66:1--66:11, Los Alamitos, CA, USA, 2012. IEEE Computer Society Press.
-
-\bibitem{legion-2014-thesis-scaling}
-Michael~Edward Bauer.
-\newblock {\em LEGION: PROGRAMMING DISTRIBUTED HETEROGENEOUS ARCHITECTURES WITH
-  LOGICAL REGIONS}.
-\newblock PhD thesis, Stanford University, 2014.
-
 \bibitem{MB-UUSCI-2012-001}
 M.~Berzins.
 \newblock {Status of Release of the Uintah Computational Framework}.
 \newblock Technical Report UUSCI-2012-001, Scientific Computing and Imaging
   Institute, 2012.
+
+\bibitem{wolfhpc12}
+Q.~Meng, A.~Humphrey, and M.~Berzins.
+\newblock {The Uintah Framework: A Unified Heterogeneous Task Scheduling and
+  Runtime System}.
+\newblock In {\em Digital Proceedings of Supercomputing 12 - WOLFHPC Workshop}.
+  IEEE, 2012.
+
+\bibitem{espm2-brad}
+B.~Peterson, A.~Humphrey, J.~Schmidt, and M.~Berzins.
+\newblock {Addressing} {Global} {Data} {Dependencies} in {Heterogeneous}
+  {Asynchronous} {Runtime} {Systems} on {GPUs}.
+\newblock In {\em Proceedings of the Third International Workshop on Extreme
+  Scale Programming Models and Middleware}, ESPM2. IEEE Press, 2017.
+
+\bibitem{uintah-2016-titan-scaling}
+A.~Humphrey, D.~Sunderland, T.~Harman, and M.~Berzins.
+\newblock {Radiative} {Heat} {Transfer} {Calculation} on 16384 {GPUs} {Using} a
+  {Reverse} {Monte} {Carlo} {Ray} {Tracing} {Approach} with {Adaptive} {Mesh}
+  {Refinement}.
+\newblock In {\em 2016 IEEE International Parallel and Distributed Processing
+  Symposium Workshops (IPDPSW)}, pages 1222--1231, May 2016.
 
 \bibitem{uintah-2016-mira-scaling}
 M.~Berzins, J.~Beckvermit, T.~Harman, A.~Bezdjian, A.~Humphrey, Q.~Meng,
@@ -41,6 +34,12 @@ M.~Berzins, J.~Beckvermit, T.~Harman, A.~Bezdjian, A.~Humphrey, Q.~Meng,
 \newblock {Extending} the {Uintah} {Framework} {Through} the {Petascale}
   {Modeling} of {Detonation} in {Arrays} of {High} {Explosive} {Devices}.
 \newblock {\em SIAM Journal on Scientific Computing (Accepted)}, 2016.
+
+\bibitem{legion-2014-thesis-scaling}
+Michael~Edward Bauer.
+\newblock {\em LEGION: PROGRAMMING DISTRIBUTED HETEROGENEOUS ARCHITECTURES WITH
+  LOGICAL REGIONS}.
+\newblock PhD thesis, Stanford University, 2014.
 
 \bibitem{charmpp-2017-scaling}
 Abhinav Bhatele, Jae-Seung Yeom, Nikhil Jain, Chris~J. Kuhlman, Yarden Livnat,
@@ -50,6 +49,58 @@ Abhinav Bhatele, Jae-Seung Yeom, Nikhil Jain, Chris~J. Kuhlman, Yarden Livnat,
 \newblock In {\em Proceedings of the 17th IEEE/ACM International Symposium on
   Cluster, Cloud and Grid Computing}, CCGrid '17, pages 689--694, Piscataway,
   NJ, USA, 2017. IEEE Press.
+
+\bibitem{HPX-scaling-global-address-space}
+Hartmut Kaiser, Thomas Heller, Bryce Adelstein-Lelbach, Adrian Serio, and
+  Dietmar Fey.
+\newblock Hpx: A task based programming model in a global address space.
+\newblock In {\em Proceedings of the 8th International Conference on
+  Partitioned Global Address Space Programming Models}, PGAS '14, pages
+  6:1--6:11, New York, NY, USA, 2014. ACM.
+
+\bibitem{parsec-2014-scaling}
+Anthony Danalis, George Bosilca, Aurelien Bouteiller, Thomas Herault, and Jack
+  Dongarra.
+\newblock {PTG}: {An} {Abstraction} for {Unhindered} {Parallelism}.
+\newblock In {\em Proceedings of the Fourth International Workshop on
+  Domain-Specific Languages and High-Level Frameworks for High Performance
+  Computing}, WOLFHPC '14, pages 21--30, Piscataway, NJ, USA, 2014. IEEE Press.
+
+\bibitem{starpu-2016-scaling}
+Emmanuel Agullo, Olivier Aumage, Mathieu Faverge, Nathalie Furmento, Florent
+  Pruvost, Marc Sergent, and Samuel Thibault.
+\newblock {Achieving High Performance on Supercomputers with a Sequential
+  Task-based Programming Model}.
+\newblock {\em {IEEE Transactions on Parallel and Distributed Systems}}, 2017.
+
+\bibitem{charmpp1993}
+Laxmikant~V. Kale and Sanjeev Krishnan.
+\newblock {CHARM++}: {A} {Portable} {Concurrent} {Object} {Oriented} {System}
+  {Based} on {C++}.
+\newblock {\em SIGPLAN Not.}, 28(10):91--108, October 1993.
+
+\bibitem{charmpp-masters-gpumanager}
+Lukasz Wesolowski.
+\newblock An application programming interface for general purpose graphics
+  processing units in an asynchronous runtime system.
+\newblock Master's thesis, Dept. of Computer Science, University of Illinois,
+  2008.
+\newblock http://charm.cs.uiuc.edu/papers/LukaszMSThesis08.shtml.
+
+\bibitem{charmpp-thesis-accel}
+David Kunzman.
+\newblock {\em Runtime support for object-based message-driven parallel
+  applications on heterogeneous clusters}.
+\newblock PhD thesis, Dept. of Computer Science, University of Illinois, 2012.
+\newblock http://charm.cs.uiuc.edu/media/12-45/.
+
+\bibitem{legion2012}
+Michael Bauer, Sean Treichler, Elliott Slaughter, and Alex Aiken.
+\newblock {Legion}: {Expressing} {Locality} and {Independence} with {Logical}
+  {Regions}.
+\newblock In {\em Proceedings of the International Conference on High
+  Performance Computing, Networking, Storage and Analysis}, SC '12, pages
+  66:1--66:11, Los Alamitos, CA, USA, 2012. IEEE Computer Society Press.
 
 \bibitem{parsec2012}
 George Bosilca, Aurelien Bouteiller, Anthony Danalis, Thomas Herault, Pierre
@@ -66,91 +117,18 @@ George Bosilca, Aurelien Bouteiller, Thomas H{\'e}rault, Pierre Lemarinier,
 \newblock {\em 2011 IEEE International Conference on Cluster Computing}, pages
   395--402, 2011.
 
+\bibitem{starpu}
+C\'edric Augonnet, Samuel Thibault, Raymond Namyst, and Pierre-Andr\'e;
+  Wacrenier.
+\newblock {StarPU}: {A} {Unified} {Platform} for {Task} {Scheduling} on
+  {Heterogeneous} {Multicore} {Architectures}.
+\newblock {\em Concurr. Comput. : Pract. Exper.}, 23(2):187--198, February
+  2011.
+
 \bibitem{opencl-specification}
 Alex Bourd.
 \newblock {The} {OpenCL} {Specification}, 2017.
 \newblock https://www.khronos.org/registry/OpenCL/specs/opencl-2.2.pdf.
-
-\bibitem{parsec-2014-scaling}
-Anthony Danalis, George Bosilca, Aurelien Bouteiller, Thomas Herault, and Jack
-  Dongarra.
-\newblock {PTG}: {An} {Abstraction} for {Unhindered} {Parallelism}.
-\newblock In {\em Proceedings of the Fourth International Workshop on
-  Domain-Specific Languages and High-Level Frameworks for High Performance
-  Computing}, WOLFHPC '14, pages 21--30, Piscataway, NJ, USA, 2014. IEEE Press.
-
-\bibitem{nebo_2015}
-Christopher Earl, Matthew Might, Abhishek Bagusetty, and James~C. Sutherland.
-\newblock Nebo: An efficient, parallel, and portable domain-specific language
-  for numerically solving partial differential equations.
-\newblock {\em Journal of Systems and Software, to appear.}, 2015.
-
-\bibitem{kokkos2012}
-H.~Carter Edwards and Daniel Sunderland.
-\newblock {Kokkos} {Array} {Performance-portable} {Manycore} {Programming}
-  {Model}.
-\newblock In {\em Proceedings of the 2012 International Workshop on Programming
-  Models and Applications for Multicores and Manycores}, PMAM '12, pages 1--10,
-  New York, NY, USA, 2012. ACM.
-
-\bibitem{uintah-2016-titan-scaling}
-A.~Humphrey, D.~Sunderland, T.~Harman, and M.~Berzins.
-\newblock {Radiative} {Heat} {Transfer} {Calculation} on 16384 {GPUs} {Using} a
-  {Reverse} {Monte} {Carlo} {Ray} {Tracing} {Approach} with {Adaptive} {Mesh}
-  {Refinement}.
-\newblock In {\em 2016 IEEE International Parallel and Distributed Processing
-  Symposium Workshops (IPDPSW)}, pages 1222--1231, May 2016.
-
-\bibitem{HPX-scaling-global-address-space}
-Hartmut Kaiser, Thomas Heller, Bryce Adelstein-Lelbach, Adrian Serio, and
-  Dietmar Fey.
-\newblock Hpx: A task based programming model in a global address space.
-\newblock In {\em Proceedings of the 8th International Conference on
-  Partitioned Global Address Space Programming Models}, PGAS '14, pages
-  6:1--6:11, New York, NY, USA, 2014. ACM.
-
-\bibitem{charmpp1993}
-Laxmikant~V. Kale and Sanjeev Krishnan.
-\newblock {CHARM++}: {A} {Portable} {Concurrent} {Object} {Oriented} {System}
-  {Based} on {C++}.
-\newblock {\em SIGPLAN Not.}, 28(10):91--108, October 1993.
-
-\bibitem{charmpp-thesis-accel}
-David Kunzman.
-\newblock {\em Runtime support for object-based message-driven parallel
-  applications on heterogeneous clusters}.
-\newblock PhD thesis, Dept. of Computer Science, University of Illinois, 2012.
-\newblock http://charm.cs.uiuc.edu/media/12-45/.
-
-\bibitem{Landaverde2014AnIO}
-Raphael Landaverde, Tiansheng Zhang, Ayse~Kivilcim Coskun, and Martin~C.
-  Herbordt.
-\newblock An investigation of {Unified} {Memory} {Access} performance in
-  {CUDA}.
-\newblock {\em 2014 IEEE High Performance Extreme Computing Conference (HPEC)},
-  pages 1--6, 2014.
-
-\bibitem{Martineau2016}
-Matt Martineau, James Price, Simon McIntosh-Smith, and Wayne Gaudin.
-\newblock {Pragmatic} {Performance} {Portability} with {OpenMP} 4.x.
-\newblock In Naoya Maruyama, Bronis~R. de~Supinski, and Mohamed Wahib, editors,
-  {\em OpenMP: Memory, Devices, and Tasks: 12th International Workshop on
-  OpenMP, IWOMP 2016, Nara, Japan, October 5-7, 2016, Proceedings}, pages
-  253--267, Cham, 2016. Springer International Publishing.
-
-\bibitem{wolfhpc12}
-Q.~Meng, A.~Humphrey, and M.~Berzins.
-\newblock {The Uintah Framework: A Unified Heterogeneous Task Scheduling and
-  Runtime System}.
-\newblock In {\em Digital Proceedings of Supercomputing 12 - WOLFHPC Workshop}.
-  IEEE, 2012.
-
-\bibitem{nvidia-programming-guide-80}
-Nvidia.
-\newblock {CUDA} {C} {P}rogramming {G}uide v8.0 {W}eb page - {J}. {U}nified
-  {M}emory {P}rogramming, 2017.
-\newblock
-  http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html\#um-unified-memory-programming-hd.
 
 \bibitem{openacc-25}
 {OpenACC member companies and CAPS Enterprise and CRAY Inc and The Portland
@@ -162,26 +140,55 @@ Nvidia.
 {OpenMP Architecture Review Board}.
 \newblock Openmp application program interface version 4.0, 2013.
 
-\bibitem{ijpp16}
-B.~Peterson, H.~Dasari, A.~Humphrey, D.~Sunderland, J.~Sutherland, T.~Saad, and
-  M.~Berzins.
-\newblock {Reducing Overhead in the Uintah Framework to Support Short-Lived
-  Tasks on GPU-Heterogeneous Architectures}.
-\newblock {\em \emph{Submitted} International Journal of Parallel Programming,
-  2016}, 2016.
+\bibitem{raja}
+J.~Keasler R.~Hornung.
+\newblock {The} {RAJA} {Portability} {Layer}: {Overview} and {Status}.
+\newblock Technical Report LLNL-TR-661403, Lawrence Livermore National
+  Laboratory, 2014.
+
+\bibitem{kokkos2012}
+H.~Carter Edwards and Daniel Sunderland.
+\newblock {Kokkos} {Array} {Performance-portable} {Manycore} {Programming}
+  {Model}.
+\newblock In {\em Proceedings of the 2012 International Workshop on Programming
+  Models and Applications for Multicores and Manycores}, PMAM '12, pages 1--10,
+  New York, NY, USA, 2012. ACM.
+
+\bibitem{Sorman2016}
+T.~Sörman.
+\newblock {Comparison} of {Technologies} for {General}-{Purpose} {Computing} on
+  {Graphics} {Processing} {Units}.
+\newblock Master's thesis, Department of Electrical Engineering, Linköping
+  University, 2016.
+
+\bibitem{Martineau2016}
+Matt Martineau, James Price, Simon McIntosh-Smith, and Wayne Gaudin.
+\newblock {Pragmatic} {Performance} {Portability} with {OpenMP} 4.x.
+\newblock In Naoya Maruyama, Bronis~R. de~Supinski, and Mohamed Wahib, editors,
+  {\em OpenMP: Memory, Devices, and Tasks: 12th International Workshop on
+  OpenMP, IWOMP 2016, Nara, Japan, October 5-7, 2016, Proceedings}, pages
+  253--267, Cham, 2016. Springer International Publishing.
+
+\bibitem{Landaverde2014AnIO}
+Raphael Landaverde, Tiansheng Zhang, Ayse~Kivilcim Coskun, and Martin~C.
+  Herbordt.
+\newblock An investigation of {Unified} {Memory} {Access} performance in
+  {CUDA}.
+\newblock {\em 2014 IEEE High Performance Extreme Computing Conference (HPEC)},
+  pages 1--6, 2014.
+
+\bibitem{nvidia-programming-guide-80}
+Nvidia.
+\newblock {CUDA} {C} {P}rogramming {G}uide v8.0 {W}eb page - {J}. {U}nified
+  {M}emory {P}rogramming, 2017.
+\newblock
+  http://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html\#um-unified-memory-programming-hd.
 
 \bibitem{saahpc-2010-brad}
 B.~Peterson, M.~Datar, M.~Hall, and R.~Whitaker.
 \newblock Gpu accelerated particle system for triangulated surface meshes.
 \newblock In {\em Proceedings of the Symposium on Application Accelerators in
   High Performance Computing}, SAAHPC, 2010.
-
-\bibitem{espm2-brad}
-B.~Peterson, A.~Humphrey, J.~Schmidt, and M.~Berzins.
-\newblock {Addressing} {Global} {Data} {Dependencies} in {Heterogeneous}
-  {Asynchronous} {Runtime} {Systems} on {GPUs}.
-\newblock In {\em Proceedings of the Third International Workshop on Extreme
-  Scale Programming Models and Middleware}, ESPM2. IEEE Press, 2017.
 
 \bibitem{wolfhpc15}
 Brad Peterson, Harish Dasari, Alan Humphrey, James Sutherland, Tony Saad, and
@@ -192,11 +199,13 @@ Brad Peterson, Harish Dasari, Alan Humphrey, James Sutherland, Tony Saad, and
   Domain-Specific Languages and High-Level Frameworks for High Performance
   Computing}, WOLFHPC '15, pages 4:1--4:8, New York, NY, USA, 2015. ACM.
 
-\bibitem{raja}
-J.~Keasler R.~Hornung.
-\newblock {The} {RAJA} {Portability} {Layer}: {Overview} and {Status}.
-\newblock Technical Report LLNL-TR-661403, Lawrence Livermore National
-  Laboratory, 2014.
+\bibitem{ijpp16}
+B.~Peterson, H.~Dasari, A.~Humphrey, D.~Sunderland, J.~Sutherland, T.~Saad, and
+  M.~Berzins.
+\newblock {Reducing Overhead in the Uintah Framework to Support Short-Lived
+  Tasks on GPU-Heterogeneous Architectures}.
+\newblock {\em \emph{Submitted} International Journal of Parallel Programming,
+  2016}, 2016.
 
 \bibitem{wasatch-2015}
 T.~Saad and J.~C. Sutherland.
@@ -204,12 +213,11 @@ T.~Saad and J.~C. Sutherland.
   {Environment} using a {Domain} {Specific} {Language} and {Graph} {Theory}.
 \newblock {\em Journal of Computational Science}, 2015.
 
-\bibitem{Sorman2016}
-T.~Sörman.
-\newblock {Comparison} of {Technologies} for {General}-{Purpose} {Computing} on
-  {Graphics} {Processing} {Units}.
-\newblock Master's thesis, Department of Electrical Engineering, Linköping
-  University, 2016.
+\bibitem{nebo_2015}
+Christopher Earl, Matthew Might, Abhishek Bagusetty, and James~C. Sutherland.
+\newblock Nebo: An efficient, parallel, and portable domain-specific language
+  for numerically solving partial differential equations.
+\newblock {\em Journal of Systems and Software, to appear.}, 2015.
 
 \bibitem{sutherland_discrete_2011}
 James~C. Sutherland and Tony Saad.
@@ -218,12 +226,34 @@ James~C. Sutherland and Tony Saad.
 \newblock In {\em 20th {AIAA} {Computational} {Fluid} {Dynamics} {Conference}},
   pages AIAA--2011--3377, Honolulu, Hawaii, USA, June 2011.
 
-\bibitem{charmpp-masters-gpumanager}
-Lukasz Wesolowski.
-\newblock An application programming interface for general purpose graphics
-  processing units in an asynchronous runtime system.
-\newblock Master's thesis, Dept. of Computer Science, University of Illinois,
-  2008.
-\newblock http://charm.cs.uiuc.edu/papers/LukaszMSThesis08.shtml.
+\bibitem{meng-dissertation}
+Qingyu Meng.
+\newblock {\em Large-Scale Distributed Runtime System for {DAG}-Based
+  Computational Framework}.
+\newblock PhD thesis, School of Computing, University of Utah, August 2014.
+\newblock Ph.D. in Computer Science, advisor Martin Berzins.
+
+\bibitem{espm2-16}
+Daniel Sunderland, Brad Peterson, John Schmidt, Alan Humphrey, Jeremy Thornock,
+  and Martin Berzins.
+\newblock An overview of performance portability in the uintah runtime system
+  through the use of kokkos.
+\newblock In {\em Proceedings of the Second Internationsl Workshop on Extreme
+  Scale Programming Models and Middleware}, ESPM2, pages 44--47, Piscataway,
+  NJ, USA, 2016. IEEE Press.
+
+\bibitem{jocs18}
+B.~Peterson, A.~Humphrey, D.~Sunderland, T.~Harman, H.~C. Edwards, and
+  M.~Berzins.
+\newblock {Demonstrating GPU Code Portability Through Kokkos on an Asynchronous
+  Many-Task Runtime on 16384 GPUs}.
+\newblock {\em \emph{Work in progress for} Journal of Computational Science and
+  Engineering, 2018}, 2018.
+
+\bibitem{respa-techreport-15}
+B.~Peterson, N.~Xiao, J.~Holmen, S.~Chaganti, A.~Pakki, J.~Schmidt,
+  D.~Sunderland, A.~Humphrey, and M.~Berzins.
+\newblock Developing uintah’s runtime system for forthcoming architectures.
+\newblock Technical report, SCI Institute, 2015.
 
 \end{thebibliography}

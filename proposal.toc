@@ -28,4 +28,4 @@
 \contentsline {section}{\numberline {5}Thesis Format}{12}
 \contentsline {section}{\numberline {6}Thesis Plan}{13}
 \contentsline {section}{\numberline {7}Conclusions}{13}
-\contentsline {section}{\numberline {8}Publications}{13}
+\contentsline {section}{\numberline {8}Publications}{14}
