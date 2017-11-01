@@ -26,7 +26,7 @@
 \textwidth      6.5in
 
 \title{{\bf Portable and Performant GPU/Heterogeneous Asynchronous Many-Task Runtime System} \\
-\it Thesis proposal}
+\it Thesis Proposal}
 \author{ {\bf Brad Peterson}  \\
 {\small bpeterson@sci.utah.edu}
 }
@@ -46,9 +46,9 @@ Nvidia GPUs introduce numerous challenges in maintaining this clear separation b
 
 The focus of this research is largely split into two main parts, performance and portability.  Runtime performance comes from 1) minimizing runtime overhead when preparing simulation variables for tasks prior to execution, and 2) executing a heterogeneous mixture of tasks to keep compute node processing units busy.  Preparation of simulation variables, especially halo processing, receives significant emphasis as Uintah's target problems heavily rely on local and global halos.  In addition, this work covers automated data movement of simulation variables between host and GPU memory as well as distributing tasks throughout a GPU for execution.   This work does not describe strategies for optimizing task code, as that is an application developer responsibility.  Rather, this work enables application developers to achieve good wall time performance with low runtime overhead.   
 
-Portability is becoming an productivity necessity for Uintah.  Application developers struggle to maintain three sets of code per task, namely code for single CPU core execution, CUDA code for GPU tasks, and a third set of code for Xeon Phi parallel execution.  Uintah seeks a portable solution through 1) unifying Uintah API for CPU and GPU tasks, and 2) adopting Kokkos as a portability layer enabling developers to write task code once while maintaining performance. Currently, Kokkos only supports synchronous GPU data copies and code execution.  Kokkos itself must be modified for asynchrony to performantly execute GPU tasks in Uintah's AMT runtime.  This research will cover both Uintah API and Kokkos changes and demonstrate results by applying these changes to production ready tasks.  
+Portability is becoming a productivity necessity for Uintah.  Application developers struggle to maintain three sets of code per task, namely code for single CPU core execution, CUDA code for GPU tasks, and a third set of code for Xeon Phi parallel execution.  Uintah seeks a portable solution through 1) unifying Uintah API for CPU and GPU tasks, and 2) adopting Kokkos as a portability layer enabling developers to write task code once while maintaining performance. Currently, Kokkos only supports synchronous GPU data copies and code execution.  Kokkos itself must be modified for asynchrony to performantly execute GPU tasks in Uintah's AMT runtime.  This research will cover both Uintah API and Kokkos changes and demonstrate results by applying these changes to production ready tasks.  
    
-An overview of other runtimes and parallel tools is given in Chapter \ref{ch:related}.  Chapter \ref{ch:uintah_prior} describes the prior state of Uintah's GPU runtime.  Chapter \ref{ch:uintah_current} outlines work completed to date.  Chapter \ref{ch:workplan} provides remaining work required to meet the full goal of this thesis.  Chapter \ref{ch:thesis_format} outlines the proposed thesis format.  Chapter \ref{ch:thesis_plan} gives a thesis plan.  The remainder of this document contains the conclusion, references, and a list of my publications.   
+An overview of other runtimes and parallel tools is given in Chapter \ref{ch:related}.  Chapter \ref{ch:uintah_prior} describes the prior state of Uintah's GPU runtime.  Chapter \ref{ch:uintah_current} outlines work completed to date.  Chapter \ref{ch:workplan} provides remaining work required to meet the goals of this thesis.  Chapter \ref{ch:thesis_format} outlines the proposed thesis format.  Chapter \ref{ch:thesis_plan} gives a thesis plan.  The remainder of this document contains the conclusion, references, and a list of my publications.   
 
 \end{abstract}
 
@@ -159,7 +159,7 @@ Regarding memory management, CUDA offers compelling features such as CUDA-aware 
 
 \subsubsection{Kokkos}
 \label{ch:Kokkos}
-Kokkos~\cite{kokkos2012} describes itself as "a programming model in C++ for writing performance portable applications targeting all major HPC platforms. For that purpose, it provides abstractions for both parallel execution of code and data management. Kokkos is designed to target complex node architectures with N-level memory hierarchies and multiple types of execution resources. It currently can use OpenMP, Pthreads and CUDA as backend programming models."  The most fundamental component of Kokkos requires developers write functors or lambda expressions which are then placed inside a \texttt{parallel\_for}, \texttt{parallel\_reduce}, or \texttt{parallel\_scan} construct.  Alongside these parallel constructs are arguments specifying number of threads desired, execution patterns, and targeted execution space.  The architecture's compiler then compiles the functors and lambda expressions for the target architecture, and Kokkos will execute the functors or lambda expressions in the manner specified.  
+Kokkos~\cite{kokkos2012} describes itself as ``a programming model in C++ for writing performance portable applications targeting all major HPC platforms. For that purpose, it provides abstractions for both parallel execution of code and data management. Kokkos is designed to target complex node architectures with N-level memory hierarchies and multiple types of execution resources. It currently can use OpenMP, Pthreads and CUDA as backend programming models."  The most fundamental component of Kokkos requires developers write functors or lambda expressions which are then placed inside a \texttt{parallel\_for}, \texttt{parallel\_reduce}, or \texttt{parallel\_scan} construct.  Alongside these parallel constructs are arguments specifying number of threads desired, execution patterns, and targeted execution space.  The architecture's compiler then compiles the functors and lambda expressions for the target architecture, and Kokkos will execute the functors or lambda expressions in the manner specified.  
 
 The second major feature of Kokkos is aligning its parallel loops with the layout of data variables.  Kokkos maintains abstracted data objects supporting various layouts in up to 8 dimensions.   Kokkos Managed Views are data objects maintained by Kokkos itself, while Unmanaged Views are simply wrapped data pointers.  Managed Views have API to aid in copying data between memory spaces, such as host memory and GPU memory, but each host-to-GPU and GPU-to-host copy comes with the cost of a synchronization barrier.  Kokkos also maintains additional API to aid developers with portability libraries for atomic operations, locking mechanisms, basic task graph implementations, and random number generation.
 
@@ -179,7 +179,7 @@ This prior GPU execution model had numerous deficiencies for both portability an
 \section{Current Work and Preliminary Results}
 \label{ch:uintah_current}
 
-Most of this chapter is summarized from work in my prior publications~\cite{saahpc-2010-brad, wolfhpc15,ijpp16, espm2-brad}.  The first publication describes experiences learned from storing particles on a mesh in GPU memory to achieve better performance.  The latter three publications describe work directly with Uintah itself enabling Uintah to open itself up to more classes of problems.  My work with Kokkos has not yet been submitted for publication.  
+Most of this chapter is summarized from work in my prior publications~\cite{saahpc-2010-brad, wolfhpc15,ijpp16, espm2-brad}.  The earliest publication describes experiences learned from storing particles on a mesh in GPU memory to achieve better performance.  The latter three publications describe work directly with Uintah itself enabling Uintah to open itself up to more classes of problems.  My work with Kokkos has not yet been submitted for publication.  
 
 \subsection{GPU/Heterogenous Data Warehouses and Task Scheduler}
 \label{ch:data warehouses}
@@ -278,7 +278,7 @@ Obtaining performance on GPUs is frequently achieved through many small blocks o
 
 \subsection{Modifying Kokkos for Asynchrony}
 \label{ch:kokkos_modifications}
-Kokkos's memory movement and kernel execution for Nvidia GPUs is similar to Uintah's GPU runtime two years ago.  CUDA barriers are used extensively to avoid concurrency issues.  Users using Kokkos must work with large, monolithic GPU kernels, which requires subdiving a functor into enough threads to properly fit within all GPU SMs.  This approach puts a difficult burden on application developers trying to properly size and partition problems.  Further, with Uintah usually running each task on a $16^3$ region of cells, it is difficult to subdivide such small regions to distribute throughout the GPU.  
+Kokkos's memory movement and kernel execution for Nvidia GPUs is similar to Uintah's GPU runtime two years ago.  CUDA barriers are used extensively to avoid concurrency issues.  Users using Kokkos must work with large, monolithic GPU kernels, which requires subdiving a \texttt{parallel\_for} or \texttt{parallel\_reduce} into enough threads to properly fit within all GPU SMs.  This approach puts a difficult burden on application developers trying to properly size and partition problems.  Further, with Uintah usually running each task on a $16^3$ region of cells, it is difficult to subdivide such small regions to distribute throughout the GPU.  For these reasons, using the large monolithic kernels that Kokkos provides in Uintah does not enable good performance and productivity.
 
 \begin{figure}
 	\centering
@@ -287,7 +287,7 @@ Kokkos's memory movement and kernel execution for Nvidia GPUs is similar to Uint
 	\label{fig:kokkos-constant-cache-new}
 \end{figure}
 
-Recent work modified Kokkos to support asynchrony of Kokkos \texttt{parallel\_for} code.  Under-the-hood the Kokkos engine now allows multiple threads to claim a region of GPU constant cache memory, asynchronously copy the functor's information into that space, then launch the kernel to execute that functor.  A visual representation of this is given in Figure~\ref{fig:kokkos-constant-cache-new}.  CUDA streams themselves are encapsulated into Kokkos::Cuda objects, and reference counting ensures that when all instances of the object are destructed the stream itself is reclaimed.  This allows any application developer using Kokkos \texttt{parallel\_for} constructs to overlap kernels with only one minor modification to their existing code. 
+My recent work modified Kokkos to support asynchrony of Kokkos \texttt{parallel\_for} code.  Now the Kokkos engine allows multiple threads to claim a region of GPU constant cache memory, asynchronously copy the functor's information into that space, then launch the kernel to execute that functor.  A visual representation of this is given in Figure~\ref{fig:kokkos-constant-cache-new}.  CUDA streams themselves are encapsulated into Kokkos::Cuda objects, and reference counting ensures that when all instances of the object are destructed the stream itself is reclaimed.  This allows any application developer using Kokkos \texttt{parallel\_for} constructs to overlap kernels with only one minor modification to their existing code. 
 
 
 
@@ -299,7 +299,9 @@ Recent work modified Kokkos to support asynchrony of Kokkos \texttt{parallel\_fo
 \label{ch:workplan-performance}
 \subsubsection{Task Scheduler Modifications}
 \label{ch:task-scheduler-modification}
-Currently the Host Memory Data Warehouse allocates space on-the-fly during task execution for host memory simulation variables.  To support sharing data objects and a unified code base, this model must change so that simulation variables are allocated prior to task execution.   Any task simulation variables identified as computing a new value should be pre-sized for upcoming halo cells based on the what can be inferred.  Determining a proper size is a challenge as the initialization time step has no information as to what halo cells will soon be found in a normal time step.  Resizing variables in GPU memory may also be a messy process.  
+Currently the Host Memory Data Warehouse allocates simulation variables on-the-fly during task execution.  Then in a later task, if the simulation variable requires halo data, the simulation variable is resized to make room for halo cells.  The performance issue here is that the resize operation requires a second allocation and costly cell-by-cell data copies.  If two tasks require the same simulation variable, both tasks duplicate the simulation variable by performing their own resize and copy.  The reason for this duplication approach was to largely avoid concurrency issues when tasks share simulation variables.    
+
+We desire a solution where 1) allocations are pre-sized on initial allocation to avoid further resizes, and 2) CPU task variables use the GPU runtime model and simulation variables are allocated prior to task execution and can be shared among tasks.  Determining a proper size is a challenge as the initialization time step has no information as to what halo cells will soon be found in a normal time step.  However, we believe the runtime can guess correctly the vast majority of the time what upcoming sizes of simulation variables need to be, but a mechanism must be in place when the runtime cannot guess correctly.  
 
 \subsubsection{Halo Gathering}
 \label{ch:workplan-halo-gathering}
@@ -309,20 +311,24 @@ Using packed contiguous buffers to transfer halo data is the correct approach~\c
 \label{ch:workplan-portability}
 \subsubsection{Unifying the Data Warehouses into One Codebase}
 \label{ch:workplan-unified-data-warehouse}
-The Host Memory Data Warehouse and the GPU Data Warehouse have very different philosophies which need to be merged into one codebase.  The Host Memory Data Warehouse largely avoids concurrency issues by duplicating simulation variables any time halo copying occurs or when two or more tasks share a simulation variable.  
+The Host Memory Data Warehouse and the GPU Data Warehouse have very different philosophies which need to be merged into one codebase.  Currently an application developer would approach utilizing Uintah APIs for a CPU task using one design pattern, while GPU tasks require a different design pattern.   This goal can be realized when CPU and GPU tasks use Uintah APIs in the same manner.  
 
-As Uintah is heavily implemented with Host Memory Data Warehouse code throughout, future work will preserve this class and merge GPU Data Warehouse concurrency and data sharing functionality into it.  This may require making the underlying map data structure lock free.  This work may be troublesome as the Uintah codebase is large and complex, with numerous code hacks for various edge cases.  My initial assumption is that it's likely some developers will insist on backwards compatibility for their edge cases with their legacy code.
+As Uintah is heavily implemented with Host Memory Data Warehouse code throughout, future work will preserve this Host Memory Data Warehouse class and merge GPU Data Warehouse concurrency and data sharing functionality into it.  This may require making the underlying map data structure lock free.  This work may be troublesome as the Uintah codebase is large and complex, with numerous code hacks for various edge cases.  My initial assumption is that it is likely some developers will insist on backwards compatibility for their edge cases with their legacy code.
 
 \subsubsection{Kokkos Modfications}
 \label{ch:workplan-kokkos-modifications}
-Uintah utilizes the Kokkos \texttt{parallel\_for} and \texttt{parallel\_reduce} constructs.  The work achieved for the \texttt{parallel\_for} and for CUDA GPU tasks needs further investigation and implementation into Kokkos.  The overall goal here is to deliver updates useful to the Kokkos project, and not just Uintah. 
+Uintah utilizes the Kokkos \texttt{parallel\_for} and \texttt{parallel\_reduce} constructs.  To operate in an asynchronous GPU environment, I need to further modify both the \texttt{parallel\_for} and \texttt{parallel\_reduce} to support multiple simultaneously executing kernels.   The overall goal here is to deliver updates useful to the Kokkos project as a whole, and not just Uintah. 
+
 \subsubsection{Uintah Integration with Kokkos}
 \label{ch:workplan-kokkos-integration}
-Results will be limited to existing tasks already written using CUDA code or Kokkos constructs.  This work plan will not attempt to rewrite any existing task into GPU or Kokkos code.   RMCRT is an excellent target problem for this research as we already have RMCRT code written for single threaded CPU, GPU, and Kokkos.  The Arches team has tasks written with CPU code and Kokkos code.  
+
+Kokkos modifications should be demonstrated on a realistic production problem in Uintah, and not just limited to simpler ``toy" problems.  RMCRT is an excellent target problem for this research as we already have RMCRT code written for single threaded CPU, GPU, and Kokkos.  Further, RMCRT requires both local and global halo requirements operating on multiple adaptive mesh refinement (AMR) layers.  In addition, it may be possible to also show results with tasks from the Arches team, as they have many tasks written with CPU code and Kokkos code.  
+
+Results will be limited to existing tasks already written using CUDA code or Kokkos constructs.  This work plan will not attempt to rewrite any existing task into CUDA or Kokkos code.  Uintah will utilize Kokkos Unmanaged Views as the runtime already manages tracking all simulation variables.  It is probable the runtime will require modifications to enable transposing simulation variables in memory for Kokkos to utilize efficient memory access patterns for a given target architecture.
 
 \subsection{Limitations of Work Plan}
 \label{ch:workplan-limitations}
-Some limitations in upcoming work will likely occur as occasionally developers write tasks that conflict with Uintah philosophy.  Five examples are 1) developers writing CPU tasks occasionally allocate their own simulation variables and perform their own halo cell gathers using a \texttt{getRegion()} call. 2) Application developers sometimes perform a Data Warehouse \texttt{get()} API call despite the task not previously listing that simulation variable. 3) A task may attempt to obtain both a CPU and GPU data pointer.  4) Developers utilize Uintah templated simulation variables with non-standard types (e.g. a \texttt{CCVariable} with a custom container object).  5) CPU and Xeon Phi tasks make OS API calls which are unavailable to GPUs.  For these reasons, it is very unlikely this work can achieve a full production run of the recent coal boiler multiphysics simulation on GPUs.  This work instead will provide the mechanism so Kokkos enabled tasks can run on GPUs if properly designed.  
+Some limitations in upcoming work will likely occur as occasionally developers write tasks that conflict with Uintah runtime philosophy.  Five examples are 1) developers of CPU tasks occasionally allocate their own simulation variables and perform their own halo cell gathers using a \texttt{getRegion()} call. 2) Application developers sometimes perform a data warehouse \texttt{get()} API call despite the task not previously listing that simulation variable. 3) A task may attempt to obtain both a CPU and GPU data pointer.  4) Developers utilize Uintah templated simulation variables with non-standard types (e.g. a \texttt{CCVariable} with a custom container object).  5) CPU and Xeon Phi tasks make OS API calls which are unavailable to GPUs.  For these reasons, it is very unlikely this work can achieve a full production run of the recent coal boiler multiphysics simulation on GPUs.  This work instead will provide the mechanism so Kokkos enabled tasks can run on GPUs if properly designed.  
 
 
 \section{Thesis Format}
@@ -332,7 +338,7 @@ My proposed thesis structure is as follows:\\
 \\
 \textbf{ABSTRACT}\\
 \textbf{CHAPTER 1 – Introduction}\\
-A description for the motivation of this project, past contributions, and the prior state of Uintah's GPU functionality. This chapter will refer to past work done by others Uintah~\cite{wolfhpc12, meng-dissertation}.\\  
+A description for the motivation of this project, past contributions, and the prior state of Uintah's GPU functionality. This chapter will refer to past Uintah work done by others~\cite{wolfhpc12, meng-dissertation}.\\  
 \textbf{CHAPTER 2 – Related Frameworks and Tools}\\
 This chapter will be an expanded form of this document's overview of related tools and demonstrate the novelty of this research.\\  
 \textbf{CHAPTER 3 – Uintah Overview and Application Developer API}\\
@@ -343,9 +349,9 @@ This chapter will use work from my prior publications~\cite{wolfhpc15,ijpp16,esp
 This chapter will use work from my prior publications~\cite{wolfhpc15,ijpp16,espm2-brad} and future work.  
 Task schedulers are the glue enabling the Uintah data store to achieve concurrency, asynchrony, and sharing of data.  This chapter will analyze and report the many steps of a task lifetime: simulation variable preparation, halo cell gathering, task execution, and task cleanup.\\ 
 \textbf{CHAPTER 6 – Kokkos Code Modifications for Asynchrony of Data Movement and Execution}\\
-This chapter will utilize current and future work~\cite{espm2-16,jocs18}.  Kokkos has strong potential as a portable code solution for Uintah, but its GPU performance is currently basic and limited.  In particular, Kokkos frequently utilizes synchronization barriers and has no mechanisms to support computation. This chapter will describe how Kokkos itself was modified to achieve full asynchrony.\\
+This chapter will utilize current and future work~\cite{espm2-16,jocs18}.  Kokkos has strong potential as a portable code solution for Uintah, but its GPU performance is currently basic and limited.  In particular, Kokkos frequently utilizes synchronization barriers for both computations and memory copies.  This chapter will describe how Kokkos itself was modified to achieve full asynchrony.\\
 \textbf{CHAPTER 7 – Kokkos and GPU Integration Into Uintah}\\
-This chapter will utilize current and future work~\cite{espm2-16,jocs18}.  I desire this chapter to be the capstone of the dissertation, demonstrating both performance and portability using production scale multiphysics tasks, while simultaneously minimizing application developer interaction with specific architectures.  This chapter will highlight the ease which an application developer can create a task and performantly execute it on a GPU, CPU, or Xeon Phi KNL.  Some specific integration details are needed, such as transposing simulation variables and utilizing Kokkos Unmanaged Views.\\  
+This chapter will utilize current and future work~\cite{espm2-16,jocs18}.  I desire this chapter to be the capstone of the dissertation, demonstrating both performance and portability using production scale multiphysics tasks, while simultaneously minimizing application developer interaction with specific architectures.  This chapter will highlight the ease which an application developer can create a task and performantly execute it on a GPU, CPU, or Xeon Phi KNL.  \\  
 \textbf{CHAPTER 8 – Conclusions and Future work}\\
 \textbf{APPENDIX}\\
 \textbf{REFERENCES}\\
@@ -353,17 +359,17 @@ This chapter will utilize current and future work~\cite{espm2-16,jocs18}.  I des
 \section{Thesis Plan}
 \label{ch:thesis_plan}
 
-\textbf{November-December 2017}: Finish Kokkos work on \texttt{parallel\_for}, \texttt{parallel\_reduce}, and supporting tools.  Demonstrate Kokkos with RMCRT in Uintah with various code bases.  Write Abstract and Chapters 6 and 7 of the dissertation.\\
+\textbf{November-December 2017}: Finish Kokkos work on \texttt{parallel\_for}, \texttt{parallel\_reduce}, and supporting tools.  Demonstrate Kokkos with RMCRT in Uintah with various codebases.  Write Abstract and Chapters 6 and 7 of the dissertation.\\
 \\
-\textbf{January 2018}: Begin transitioning to a unified data warehouse model.  This involves modifying the Host Memory Data Warehouse to use similar logic as the GPU model where allocations are done prior by the scheduler, and not during task execution by the application developer.  Finish Abstract, Chapter 1, 2, and 3.\\
+\textbf{January 2018}: Begin transitioning to a unified data warehouse model.  This involves modifying the Host Memory Data Warehouse to use similar logic as the GPU model where allocations are done prior by the scheduler, and not during task execution by the application developer.  Finish Abstract, Chapter 1, 2, and begin writing Chapter 3.\\
 \\
-\textbf{February 2018}: Continue implementing changes for a unified Data Warehouse model.  Gather data necessary to fully write Chapter 4.\\
+\textbf{February 2018}: Continue implementing changes for a unified Data Warehouse model.  Finish Chapter 3 and gather data necessary to write Chapter 4.\\
 \\
-\textbf{March 2018}: Continue implementing changes for a unified Data Warehouse model.  Gather data necessary to fully write Chapter 5.  \\
+\textbf{March 2018}: Continue implementing changes for a unified Data Warehouse model.  Finish Chapter 4 and write Chapter 5.  \\
 \\
-\textbf{April 2018}: Finish all leftover work.  Print and bind into dissertation.  Defend. \\
+\textbf{April 2018}: Finish all remaining work.   Defend. \\
 \\
-\textbf{May-June 2018}: Work with Thesis Office to complete and publish the dissertation. \\
+\textbf{May-June 2018}: Work with Thesis Office to complete dissertation.  Print and bind dissertation. \\
 
 
 \section{Conclusions}
@@ -373,21 +379,21 @@ The high-level goal of past and ongoing research is demonstrating both portabili
 
 \section{Publications}
 
-\cite{espm2-brad}  --- \textbf{B. Peterson}, A. Humphrey, J. Schmidt, M. Berzins.  "Addressing Global Data Dependencies in Heterogenous Asynchronous Runtime Systems on GPUs", In {Proceedings of the Third International Workshop on Extreme Scale Programming Models and Middleware (ESPM2'17)}, 2017. \\
+\cite{espm2-brad}  --- \textbf{B. Peterson}, A. Humphrey, J. Schmidt, M. Berzins.  ``Addressing Global Data Dependencies in Heterogenous Asynchronous Runtime Systems on GPUs", In {Proceedings of the Third International Workshop on Extreme Scale Programming Models and Middleware (ESPM2'17)}, 2017. \\
 \\
-\cite{espm2-16}  --- D. Sunderland, \textbf{B. Peterson}, J. Schmidt, A. Humphrey, J. Thornock, and M. Berzins. "An Overview of Performance Portability in the Uintah Runtime System Through the Use of Kokkos."  In \textit{Proceedings of the Second International Workshop on Extreme Scale Programming Models and Middleware (ESPM2)}. IEEE Press, Piscataway, NJ, USA, 44-47. 2016.\\
+\cite{espm2-16}  --- D. Sunderland, \textbf{B. Peterson}, J. Schmidt, A. Humphrey, J. Thornock, and M. Berzins. ``An Overview of Performance Portability in the Uintah Runtime System Through the Use of Kokkos."  In \textit{Proceedings of the Second International Workshop on Extreme Scale Programming Models and Middleware (ESPM2)}. IEEE Press, Piscataway, NJ, USA, 44-47. 2016.\\
 \\
-\cite{respa-techreport-15} --- \textbf{B. Peterson}, N. Xiao, J. Holmen, S. Chaganti, A. Pakki, J. Schmidt, D. Sunderland, A. Humphrey, M. Berzins. "Developing Uintah's Runtime System For Forthcoming Architectures," Subtitled "Refereed paper presented at the RESPA 15 Workshop at SuperComputing 2015 Austin Texas," \textit{SCI Institute}, 2015.\\
+\cite{respa-techreport-15} --- \textbf{B. Peterson}, N. Xiao, J. Holmen, S. Chaganti, A. Pakki, J. Schmidt, D. Sunderland, A. Humphrey, M. Berzins. ``Developing Uintah's Runtime System For Forthcoming Architectures," Subtitled ``Refereed paper presented at the RESPA 15 Workshop at SuperComputing 2015 Austin Texas," \textit{SCI Institute}, 2015.\\
 \\
-\cite{wolfhpc15} --- \textbf{B. Peterson}, A. Humphrey, H. K. Dasari, J.C. Sutherland, T. Saad, M. Berzins, "Reducing overhead in the Uintah framework to support short-lived tasks on GPU-heterogeneous architectures," In \textit{Proceedings of the 5th International Workshop on Domain-Specific Languages and High-Level Frameworks for High Performance Computing (WOLFHPC'15)}, ACM, pp. 4:1-4:8. 2015.\\
+\cite{wolfhpc15} --- \textbf{B. Peterson}, A. Humphrey, H. K. Dasari, J.C. Sutherland, T. Saad, M. Berzins, ``Reducing overhead in the Uintah framework to support short-lived tasks on GPU-heterogeneous architectures," In \textit{Proceedings of the 5th International Workshop on Domain-Specific Languages and High-Level Frameworks for High Performance Computing (WOLFHPC'15)}, ACM, pp. 4:1-4:8. 2015.\\
 \\
-\cite{saahpc-2010-brad} --- \textbf{B. Peterson}, M. Datar, M. Hall, R. Whitaker.  "GPU accelerated particle system for triangulated surface meshes," \textit{In Proceedings of the Symposium on Application Accelerators in High Performance Computing (SAAHPC)}, 2010.\\
+\cite{saahpc-2010-brad} --- \textbf{B. Peterson}, M. Datar, M. Hall, R. Whitaker.  ``GPU accelerated particle system for triangulated surface meshes," \textit{In Proceedings of the Symposium on Application Accelerators in High Performance Computing (SAAHPC)}, 2010.\\
 \\
 \textbf{Publications in Progress}\\
 \\
-\cite{ijpp16} --- \textbf{B. Peterson},  A. Humphrey, J.C. Sutherland, T. Saad, M. Berzins, H. K. Dasari. "Reducing overhead in the Uintah framework to support short-lived tasks on GPU-heterogeneous architectures," Submitted International Journal of Parallel Programming, 2016.\\
+\cite{ijpp16} --- \textbf{B. Peterson},  A. Humphrey, J.C. Sutherland, T. Saad, M. Berzins, H. K. Dasari. ``Reducing overhead in the Uintah framework to support short-lived tasks on GPU-heterogeneous architectures," Submitted International Journal of Parallel Programming, 2016.\\
 \\
-\cite{jocs18} --- \textbf{B. Peterson}, A. Humphrey, D. Sunderland, T. Harman, H. C. Edwards, M. Berzins. "Demonstrating GPU Code Portability Through Kokkos on an Asynchronous Many-Task Runtime on 16384 GPUs",  Work in progress for Journal of Computational Science and Engineering, 2018.\\
+\cite{jocs18} --- \textbf{B. Peterson}, A. Humphrey, D. Sunderland, T. Harman, H. C. Edwards, M. Berzins. ``Demonstrating GPU Code Portability Through Kokkos on an Asynchronous Many-Task Runtime on 16384 GPUs",  Work in progress for Journal of Computational Science and Engineering, 2018.\\
 
 
 
