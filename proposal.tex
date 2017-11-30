@@ -345,14 +345,14 @@ This chapter will be an expanded form of this document's overview of related too
 Chapter 3 will contain an overview of the many moving parts that enable Uintah to function.  A description will be given of all steps required for an application developer to create and execute CPU and GPU tasks.  \\  
 \textbf{CHAPTER 4 -- A Host and GPU Data Store Enabling Concurrency, Asynchrony, and Data Sharing}\\ 
 This chapter will use work from my prior publications~\cite{wolfhpc15,ijpp16,espm2-brad} and future work.  This chapter will contain an overview of the existing Host Memory Data Warehouse, including its strengths and limitations.  One section will cover the GPU Data Warehouse including its iterations, with a demonstration at each iteration what new characteristics it achieved.  This chapter should conclude with a data warehouse design using a unified codebase managing data in both host memory and GPU memory.\\  
-\textbf{CHAPTER 5 – Uintah Heterogenous/GPU Task Scheduling and Execution}\\
+\textbf{CHAPTER 5 – Uintah Heterogeneous/GPU Task Scheduling and Execution}\\
 This chapter will use work from my prior publications~\cite{wolfhpc15,ijpp16,espm2-brad} and future work.  
 Task schedulers are the glue enabling the Uintah data store to achieve concurrency, asynchrony, and sharing of data.  This chapter will analyze and report the many steps of a task lifetime: simulation variable preparation, halo cell gathering, task execution, and task cleanup.\\ 
 \textbf{CHAPTER 6 – Kokkos Code Modifications for Asynchrony of Data Movement and Execution}\\
 This chapter will utilize current and future work~\cite{espm2-16,jocs18}.  Kokkos has strong potential as a portable code solution for Uintah, but its GPU performance is currently basic and limited.  In particular, Kokkos frequently utilizes synchronization barriers for both computations and memory copies.  This chapter will describe how Kokkos itself was modified to achieve full asynchrony.\\
 \textbf{CHAPTER 7 – Kokkos and GPU Integration Into Uintah}\\
 This chapter will utilize current and future work~\cite{espm2-16,jocs18}.  I desire this chapter to be the capstone of the dissertation, demonstrating both performance and portability using production scale multiphysics tasks, while simultaneously minimizing application developer interaction with specific architectures.  This chapter will highlight the ease which an application developer can create a task and performantly execute it on a GPU, CPU, or Xeon Phi KNL.  \\  
-\textbf{CHAPTER 8 – Conclusions and Future work}\\
+\textbf{CHAPTER 8 – Conclusions and Future Work}\\
 \textbf{APPENDIX}\\
 \textbf{REFERENCES}\\
 
@@ -379,9 +379,9 @@ The high-level goal of past and ongoing research is demonstrating both portabili
 
 \section{Publications}
 
-\cite{espm2-brad}  --- \textbf{B. Peterson}, A. Humphrey, J. Schmidt, M. Berzins.  ``Addressing Global Data Dependencies in Heterogenous Asynchronous Runtime Systems on GPUs", In {Proceedings of the Third International Workshop on Extreme Scale Programming Models and Middleware (ESPM2'17)}, 2017. \\
+\cite{espm2-brad}  --- \textbf{B. Peterson}, A. Humphrey, J. Schmidt, M. Berzins.  ``Addressing Global Data Dependencies in Heterogenous Asynchronous Runtime Systems on GPUs", In {Proceedings of the Third International Workshop on Extreme Scale Programming Models and Middleware (ESPM2'17)}, 2017. \textbf{Received Best Paper Award}\\
 \\
-\cite{espm2-16}  --- D. Sunderland, \textbf{B. Peterson}, J. Schmidt, A. Humphrey, J. Thornock, and M. Berzins. ``An Overview of Performance Portability in the Uintah Runtime System Through the Use of Kokkos."  In \textit{Proceedings of the Second International Workshop on Extreme Scale Programming Models and Middleware (ESPM2)}. IEEE Press, Piscataway, NJ, USA, 44-47. 2016.\\
+\cite{espm2-16}  --- D. Sunderland, \textbf{B. Peterson}, J. Schmidt, A. Humphrey, J. Thornock, and M. Berzins. ``An Overview of Performance Portability in the Uintah Runtime System Through the Use of Kokkos."  In \textit{Proceedings of the Second International Workshop on Extreme Scale Programming Models and Middleware (ESPM2)}. IEEE Press, Piscataway, NJ, USA, 44-47. 2016.  \\
 \\
 \cite{respa-techreport-15} --- \textbf{B. Peterson}, N. Xiao, J. Holmen, S. Chaganti, A. Pakki, J. Schmidt, D. Sunderland, A. Humphrey, M. Berzins. ``Developing Uintah's Runtime System For Forthcoming Architectures," Subtitled ``Refereed paper presented at the RESPA 15 Workshop at SuperComputing 2015 Austin Texas," \textit{SCI Institute}, 2015.\\
 \\
